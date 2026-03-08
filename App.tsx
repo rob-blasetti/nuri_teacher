@@ -5,16 +5,21 @@ import { AppProviders } from './src/app/providers/AppProviders';
 import { RootNavigator } from './src/app/navigation/RootNavigator';
 import { migrateDb } from './src/data/db/client';
 import { bootstrapSeedData } from './src/data/db/bootstrap';
+import { useAuth } from './src/features/auth/context/AuthContext';
+import { SignInScreen } from './src/features/auth/screens/SignInScreen';
 import { useAppStore } from './src/state/useAppStore';
 import { colors } from './src/shared/theme/colors';
-import { SignInScreen } from './src/features/auth/screens/SignInScreen';
+
+function AppContent() {
+  const { isAuthenticated } = useAuth();
+
+  return isAuthenticated ? <RootNavigator /> : <SignInScreen />;
+}
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
   const isBootstrapped = useAppStore(state => state.isBootstrapped);
-  const authToken = useAppStore(state => state.authToken);
   const setBootstrapped = useAppStore(state => state.setBootstrapped);
-  const setAuthSession = useAppStore(state => state.setAuthSession);
 
   useEffect(() => {
     if (Platform.OS === 'ios') {
@@ -45,7 +50,7 @@ function App() {
   return (
     <AppProviders>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      {authToken ? <RootNavigator /> : <SignInScreen onSignedIn={setAuthSession} />}
+      <AppContent />
     </AppProviders>
   );
 }

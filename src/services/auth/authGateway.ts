@@ -1,8 +1,9 @@
 import { SignInResponse } from './types';
 
-const AUTH_GATEWAY_BASE_URL = 'https://your-auth-gateway.example.com';
+const AUTH_LOGIN_URL = 'https://liquid-spirit-auth.vercel.app/api/auth/login';
 
 type GatewayResponse = {
+  message?: string;
   token?: string;
   accessToken?: string;
   jwt?: string;
@@ -15,7 +16,7 @@ type GatewayResponse = {
 };
 
 export async function signInWithAuthGateway(email: string, password: string): Promise<SignInResponse> {
-  const response = await fetch(`${AUTH_GATEWAY_BASE_URL}/signin`, {
+  const response = await fetch(AUTH_LOGIN_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -27,9 +28,7 @@ export async function signInWithAuthGateway(email: string, password: string): Pr
   const payload = (await readJson(response)) as GatewayResponse | undefined;
 
   if (!response.ok) {
-    const message = payload && 'message' in payload && typeof payload.message === 'string'
-      ? payload.message
-      : 'Unable to sign in.';
+    const message = typeof payload?.message === 'string' ? payload.message : 'Unable to sign in.';
     throw new Error(message);
   }
 

@@ -9,19 +9,28 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { useAuth } from '../context/AuthContext';
 import { colors } from '../../../shared/theme/colors';
 import { signInWithAuthGateway } from '../../../services/auth/authGateway';
-import { SignInResponse } from '../../../services/auth/types';
 
-type SignInScreenProps = {
-  onSignedIn: (session: SignInResponse) => void;
-};
-
-export function SignInScreen({ onSignedIn }: SignInScreenProps) {
+export function SignInScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string>();
+  const { setAuthSession } = useAuth();
+
+  const onContinueAsGuest = () => {
+    setError(undefined);
+    setAuthSession({
+      token: 'guest-session',
+      user: {
+        id: 'guest-user',
+        name: 'Guest',
+        email: 'guest@nuri.local',
+      },
+    });
+  };
 
   const onSubmit = async () => {
     const trimmedEmail = email.trim();
@@ -35,7 +44,7 @@ export function SignInScreen({ onSignedIn }: SignInScreenProps) {
 
     try {
       const session = await signInWithAuthGateway(trimmedEmail, password);
-      onSignedIn(session);
+      setAuthSession(session);
     } catch (submitError) {
       const message = submitError instanceof Error ? submitError.message : 'Unable to sign in.';
       setError(message);
@@ -52,7 +61,7 @@ export function SignInScreen({ onSignedIn }: SignInScreenProps) {
         <View style={styles.hero}>
           <Text style={styles.eyebrow}>Nuri Teacher</Text>
           <Text style={styles.title}>Sign in</Text>
-          <Text style={styles.subtitle}>Use your auth gateway account to open the app.</Text>
+          <Text style={styles.subtitle}>Use your account to sign in or continue as a guest.</Text>
         </View>
 
         <View style={styles.card}>
@@ -82,6 +91,13 @@ export function SignInScreen({ onSignedIn }: SignInScreenProps) {
 
           <Pressable style={[styles.button, isSubmitting && styles.buttonDisabled]} onPress={onSubmit} disabled={isSubmitting}>
             {isSubmitting ? <ActivityIndicator color={colors.white} /> : <Text style={styles.buttonText}>Sign In</Text>}
+          </Pressable>
+
+          <Pressable
+            style={[styles.secondaryButton, isSubmitting && styles.buttonDisabled]}
+            onPress={onContinueAsGuest}
+            disabled={isSubmitting}>
+            <Text style={styles.secondaryButtonText}>Continue as guest</Text>
           </Pressable>
         </View>
       </View>
@@ -156,6 +172,20 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: colors.white,
+    fontWeight: '700',
+  },
+  secondaryButton: {
+    backgroundColor: colors.white,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 48,
+    marginTop: 10,
+  },
+  secondaryButtonText: {
+    color: colors.textOnWhite,
     fontWeight: '700',
   },
 });
