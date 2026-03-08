@@ -6,7 +6,7 @@ import { listStudents } from '../../../data/repositories/studentRepository';
 import { getDb } from '../../../data/db/client';
 import { colors } from '../../../shared/theme/colors';
 
-export function DashboardScreen() {
+export function HomeScreen() {
   const navigation = useNavigation<any>();
   const [nextClass, setNextClass] = useState<string>('No class set');
   const [studentCount, setStudentCount] = useState(0);
@@ -32,7 +32,7 @@ export function DashboardScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Teacher Dashboard</Text>
+      <Text style={styles.title}>Home</Text>
 
       <View style={styles.card}>
         <Text style={styles.label}>Next class</Text>
@@ -51,16 +51,10 @@ export function DashboardScreen() {
       </View>
 
       <View style={styles.actions}>
-        <Pressable style={styles.button} onPress={() => navigation.navigate('ClassesStack')}>
-          <Text style={styles.buttonText}>Manage Classes</Text>
-        </Pressable>
-        <Pressable style={styles.button} onPress={() => navigation.navigate('LibraryStack')}>
-          <Text style={styles.buttonText}>Open Quotes & Prayers</Text>
-        </Pressable>
         <Pressable style={styles.button} onPress={() => navigation.navigate('RuhiStack')}>
           <Text style={styles.buttonText}>Study Ruhi</Text>
         </Pressable>
-        <Pressable style={styles.button} onPress={() => navigation.navigate('LessonList')}>
+        <Pressable style={styles.button} onPress={() => navigation.navigate('LessonsStack')}>
           <Text style={styles.buttonText}>Lesson Planner</Text>
         </Pressable>
       </View>

@@ -8,16 +8,49 @@ import {
 
 export const seedClasses: ClassEntity[] = [
   {
-    id: 'class-junior-a',
-    name: 'Junior A',
-    ageGroup: '8-10',
+    id: 'class-preschool',
+    name: 'Preschool',
+    ageGroup: '4-5',
+    schedule: 'Sunday 9:00',
+    currentUnit: 'Joy and Sharing',
+    notes: 'Keep transitions short and active.',
+  },
+  {
+    id: 'class-grade-1',
+    name: 'Grade 1',
+    ageGroup: '5-6',
+    schedule: 'Sunday 9:30',
+    currentUnit: 'Kindness',
+    notes: 'Use songs and repetition.',
+  },
+  {
+    id: 'class-grade-2',
+    name: 'Grade 2',
+    ageGroup: '6-7',
     schedule: 'Sunday 10:00',
+    currentUnit: 'Truthfulness',
+    notes: 'Encourage discussion through examples.',
+  },
+  {
+    id: 'class-junior-a',
+    name: 'Grade 3',
+    ageGroup: '8-10',
+    schedule: 'Sunday 10:30',
     currentUnit: 'Truthfulness',
     notes: 'Focus on warm encouragement and repetition.',
   },
 ];
 
 export const seedStudents: StudentEntity[] = [
+  { id: 'stu-maya', classId: 'class-preschool', name: 'Maya', active: true },
+  { id: 'stu-zayn', classId: 'class-preschool', name: 'Zayn', active: true },
+  { id: 'stu-ali', classId: 'class-preschool', name: 'Ali', active: true },
+  { id: 'stu-hana', classId: 'class-grade-1', name: 'Hana', active: true },
+  { id: 'stu-jude', classId: 'class-grade-1', name: 'Jude', active: true },
+  { id: 'stu-sami', classId: 'class-grade-1', name: 'Sami', active: true },
+  { id: 'stu-elsa', classId: 'class-grade-2', name: 'Elsa', active: true },
+  { id: 'stu-ibrahim', classId: 'class-grade-2', name: 'Ibrahim', active: true },
+  { id: 'stu-nora', classId: 'class-grade-2', name: 'Nora', active: true },
   { id: 'stu-sara', classId: 'class-junior-a', name: 'Sara', active: true },
   { id: 'stu-yusuf', classId: 'class-junior-a', name: 'Yusuf', active: true },
   { id: 'stu-lina', classId: 'class-junior-a', name: 'Lina', active: true },

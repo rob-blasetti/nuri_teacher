@@ -1,22 +1,15 @@
 export type RootStackParamList = {
   Tabs: undefined;
-  LessonList: undefined;
   LessonEditor: { lessonId?: string } | undefined;
   InClassMode: { classId: string; lessonId?: string };
 };
 
 export type TabParamList = {
-  Dashboard: undefined;
-  ClassesStack: undefined;
+  Home: undefined;
+  Community: undefined;
   StudentsStack: undefined;
-  LibraryStack: undefined;
+  LessonsStack: undefined;
   RuhiStack: undefined;
-};
-
-export type ClassesStackParamList = {
-  ClassList: undefined;
-  ClassDetail: { classId: string };
-  Attendance: { classId: string };
 };
 
 export type StudentsStackParamList = {
@@ -24,9 +17,9 @@ export type StudentsStackParamList = {
   StudentDetail: { studentId: string };
 };
 
-export type LibraryStackParamList = {
-  ContentList: undefined;
-  ContentDetail: { contentId: string };
+export type LessonsStackParamList = {
+  LessonList: undefined;
+  LessonDetail: { lessonId: string };
 };
 
 export type RuhiStackParamList = {

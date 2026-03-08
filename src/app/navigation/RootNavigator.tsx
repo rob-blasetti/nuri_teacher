@@ -2,25 +2,22 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../../shared/theme/colors';
 import {
-  ClassesStackParamList,
-  LibraryStackParamList,
+  LessonsStackParamList,
   RootStackParamList,
   RuhiStackParamList,
   StudentsStackParamList,
   TabParamList,
 } from './types';
-import { DashboardScreen } from '../../features/dashboard/screens/DashboardScreen';
-import { ClassListScreen } from '../../features/classes/screens/ClassListScreen';
-import { ClassDetailScreen } from '../../features/classes/screens/ClassDetailScreen';
-import { AttendanceScreen } from '../../features/classes/screens/AttendanceScreen';
+import { HomeScreen } from '../../features/home/screens/HomeScreen';
+import { CommunityScreen } from '../../features/community/screens/CommunityScreen';
 import { StudentListScreen } from '../../features/students/screens/StudentListScreen';
 import { StudentDetailScreen } from '../../features/students/screens/StudentDetailScreen';
-import { ContentListScreen } from '../../features/content/screens/ContentListScreen';
-import { ContentDetailScreen } from '../../features/content/screens/ContentDetailScreen';
 import { LessonEditorScreen } from '../../features/lessons/screens/LessonEditorScreen';
 import { LessonListScreen } from '../../features/lessons/screens/LessonListScreen';
+import { LessonDetailScreen } from '../../features/lessons/screens/LessonDetailScreen';
 import { InClassModeScreen } from '../../features/classMode/screens/InClassModeScreen';
 import { RuhiBookListScreen } from '../../features/ruhi/screens/RuhiBookListScreen';
 import { RuhiSectionScreen } from '../../features/ruhi/screens/RuhiSectionScreen';
@@ -28,26 +25,9 @@ import { RuhiJournalScreen } from '../../features/ruhi/screens/RuhiJournalScreen
 
 const RootStack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
-const ClassesStack = createNativeStackNavigator<ClassesStackParamList>();
 const StudentsStack = createNativeStackNavigator<StudentsStackParamList>();
-const LibraryStack = createNativeStackNavigator<LibraryStackParamList>();
+const LessonsStack = createNativeStackNavigator<LessonsStackParamList>();
 const RuhiStack = createNativeStackNavigator<RuhiStackParamList>();
-
-function ClassesNavigator() {
-  return (
-    <ClassesStack.Navigator
-      screenOptions={{
-        headerStyle: { backgroundColor: colors.surface },
-        headerTintColor: colors.textPrimary,
-        headerTitleStyle: { color: colors.textPrimary },
-      }}
-    >
-      <ClassesStack.Screen name="ClassList" component={ClassListScreen} options={{ title: 'Classes' }} />
-      <ClassesStack.Screen name="ClassDetail" component={ClassDetailScreen} options={{ title: 'Class' }} />
-      <ClassesStack.Screen name="Attendance" component={AttendanceScreen} options={{ title: 'Attendance' }} />
-    </ClassesStack.Navigator>
-  );
-}
 
 function StudentsNavigator() {
   return (
@@ -64,18 +44,18 @@ function StudentsNavigator() {
   );
 }
 
-function LibraryNavigator() {
+function LessonsNavigator() {
   return (
-    <LibraryStack.Navigator
+    <LessonsStack.Navigator
       screenOptions={{
         headerStyle: { backgroundColor: colors.surface },
         headerTintColor: colors.textPrimary,
         headerTitleStyle: { color: colors.textPrimary },
       }}
     >
-      <LibraryStack.Screen name="ContentList" component={ContentListScreen} options={{ title: 'Library' }} />
-      <LibraryStack.Screen name="ContentDetail" component={ContentDetailScreen} options={{ title: 'Content' }} />
-    </LibraryStack.Navigator>
+      <LessonsStack.Screen name="LessonList" component={LessonListScreen} options={{ title: 'Lesson Plans' }} />
+      <LessonsStack.Screen name="LessonDetail" component={LessonDetailScreen} options={{ title: 'Lesson Detail' }} />
+    </LessonsStack.Navigator>
   );
 }
 
@@ -96,33 +76,38 @@ function RuhiNavigator() {
 }
 
 function TabsNavigator() {
+  const insets = useSafeAreaInsets();
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textMuted,
         tabBarStyle: {
-          height: 64,
-          paddingTop: 6,
-          paddingBottom: 8,
+          height: 60 + insets.bottom,
+          paddingTop: 8,
+          paddingBottom: Math.max(insets.bottom, 12),
           backgroundColor: colors.surface,
           borderTopColor: colors.surfaceBorder,
+        },
+        tabBarItemStyle: {
+          paddingVertical: 4,
         },
         tabBarIcon: ({ color, size, focused }) => {
           let iconName: string;
 
           switch (route.name) {
-            case 'Dashboard':
+            case 'Home':
               iconName = focused ? 'home' : 'home-outline';
               break;
-            case 'ClassesStack':
-              iconName = focused ? 'people' : 'people-outline';
+            case 'Community':
+              iconName = focused ? 'people-circle' : 'people-circle-outline';
               break;
             case 'StudentsStack':
               iconName = focused ? 'person-circle' : 'person-circle-outline';
               break;
-            case 'LibraryStack':
-              iconName = focused ? 'book' : 'book-outline';
+            case 'LessonsStack':
+              iconName = focused ? 'reader' : 'reader-outline';
               break;
             case 'RuhiStack':
               iconName = focused ? 'sparkles' : 'sparkles-outline';
@@ -134,10 +119,10 @@ function TabsNavigator() {
           return <Ionicons name={iconName} size={size} color={color} />;
         },
       })}>
-      <Tab.Screen name="Dashboard" component={DashboardScreen} />
-      <Tab.Screen name="ClassesStack" component={ClassesNavigator} options={{ title: 'Classes', headerShown: false }} />
+      <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="Community" component={CommunityScreen} />
       <Tab.Screen name="StudentsStack" component={StudentsNavigator} options={{ title: 'Students', headerShown: false }} />
-      <Tab.Screen name="LibraryStack" component={LibraryNavigator} options={{ title: 'Library', headerShown: false }} />
+      <Tab.Screen name="LessonsStack" component={LessonsNavigator} options={{ title: 'Lessons', headerShown: false }} />
       <Tab.Screen name="RuhiStack" component={RuhiNavigator} options={{ title: 'Ruhi', headerShown: false }} />
     </Tab.Navigator>
   );
@@ -152,7 +137,6 @@ export function RootNavigator() {
       }}
     >
       <RootStack.Screen name="Tabs" component={TabsNavigator} options={{ headerShown: false }} />
-      <RootStack.Screen name="LessonList" component={LessonListScreen} options={{ title: 'Lesson Plans' }} />
       <RootStack.Screen name="LessonEditor" component={LessonEditorScreen} options={{ presentation: 'modal', title: 'Lesson' }} />
       <RootStack.Screen name="InClassMode" component={InClassModeScreen} options={{ title: 'In-Class Mode' }} />
     </RootStack.Navigator>
