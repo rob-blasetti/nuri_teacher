@@ -1,19 +1,23 @@
-import React, { useCallback, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { listClasses } from '../../../data/repositories/classRepository';
 import { listStudents } from '../../../data/repositories/studentRepository';
 import { getDb } from '../../../data/db/client';
+import { ClassEntity } from '../../../types/entities';
 import { colors } from '../../../shared/theme/colors';
 
 export function HomeScreen() {
   const navigation = useNavigation<any>();
   const [nextClass, setNextClass] = useState<string>('No class set');
+  const [classes, setClasses] = useState<ClassEntity[]>([]);
   const [studentCount, setStudentCount] = useState(0);
   const [needsReview, setNeedsReview] = useState(0);
 
   const load = useCallback(async () => {
     const [classes, students] = await Promise.all([listClasses(), listStudents()]);
+    setClasses(classes);
     setStudentCount(students.length);
     setNextClass(classes[0] ? `${classes[0].name} • ${classes[0].schedule ?? 'No schedule'}` : 'No class set');
 
@@ -24,11 +28,15 @@ export function HomeScreen() {
     setNeedsReview((result.rows.item(0).count as number) || 0);
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      load();
-    }, [load]),
-  );
+  useEffect(() => {
+    load();
+
+    const unsubscribeFocus = navigation.addListener('focus', load);
+
+    return () => {
+      unsubscribeFocus();
+    };
+  }, [load, navigation]);
 
   return (
     <View style={styles.container}>
@@ -50,6 +58,52 @@ export function HomeScreen() {
         </View>
       </View>
 
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>My Classes</Text>
+        <Text style={styles.sectionSubtitle}>Swipe through your classes.</Text>
+      </View>
+
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.carouselContent}>
+        {classes.length > 0 ? (
+          classes.map(classItem => (
+            <View key={classItem.id} style={styles.carouselCard}>
+              <View style={styles.carouselImagePlaceholder}>
+                <Text style={styles.carouselImageText}>{classItem.name}</Text>
+              </View>
+              <View style={styles.carouselCardBody}>
+                <Text style={styles.carouselTitle}>{classItem.name}</Text>
+                <View style={styles.carouselFooter}>
+                  <View style={styles.scheduleRow}>
+                    <Ionicons name="time-outline" size={16} color={colors.highlight} />
+                    <Text style={styles.scheduleText}>{classItem.schedule ?? 'Schedule coming soon'}</Text>
+                  </View>
+                  <Text style={styles.nextSessionText}>Next Session: {getNextSessionLabel(classItem.schedule)}</Text>
+                </View>
+              </View>
+            </View>
+          ))
+        ) : (
+          <View style={styles.carouselCard}>
+            <View style={styles.carouselImagePlaceholder}>
+              <Text style={styles.carouselImageText}>My Classes</Text>
+            </View>
+            <View style={styles.carouselCardBody}>
+              <Text style={styles.carouselTitle}>No classes yet</Text>
+              <View style={styles.carouselFooter}>
+                <View style={styles.scheduleRow}>
+                  <Ionicons name="time-outline" size={16} color={colors.highlight} />
+                  <Text style={styles.scheduleText}>Schedule coming soon</Text>
+                </View>
+                <Text style={styles.nextSessionText}>Next Session: TBD</Text>
+              </View>
+            </View>
+          </View>
+        )}
+      </ScrollView>
+
       <View style={styles.actions}>
         <Pressable style={styles.button} onPress={() => navigation.navigate('RuhiStack')}>
           <Text style={styles.buttonText}>Study Ruhi</Text>
@@ -60,6 +114,39 @@ export function HomeScreen() {
       </View>
     </View>
   );
+}
+
+function getNextSessionLabel(schedule?: string): string {
+  if (!schedule) {
+    return 'TBD';
+  }
+
+  const weekdayMap: Record<string, number> = {
+    sunday: 0,
+    monday: 1,
+    tuesday: 2,
+    wednesday: 3,
+    thursday: 4,
+    friday: 5,
+    saturday: 6,
+  };
+
+  const weekdayKey = Object.keys(weekdayMap).find(day => schedule.toLowerCase().includes(day));
+  if (!weekdayKey) {
+    return 'TBD';
+  }
+
+  const targetDay = weekdayMap[weekdayKey];
+  const now = new Date();
+  const next = new Date(now);
+  const daysUntil = (targetDay - now.getDay() + 7) % 7 || 7;
+  next.setDate(now.getDate() + daysUntil);
+
+  return next.toLocaleDateString('en-AU', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  });
 }
 
 const styles = StyleSheet.create({
@@ -77,6 +164,63 @@ const styles = StyleSheet.create({
   },
   label: { color: colors.textSoft, marginBottom: 4 },
   value: { color: colors.textOnWhite, fontWeight: '700', fontSize: 16 },
+  sectionHeader: { marginTop: 6, marginBottom: 10 },
+  sectionTitle: { fontSize: 20, fontWeight: '700', color: colors.textPrimary },
+  sectionSubtitle: { color: colors.textMuted, marginTop: 4 },
+  carouselContent: { paddingRight: 16, gap: 12 },
+  carouselCard: {
+    width: 220,
+    backgroundColor: colors.surfaceSoft,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    overflow: 'hidden',
+  },
+  carouselImagePlaceholder: {
+    height: 120,
+    backgroundColor: colors.primaryStrong,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+  },
+  carouselImageText: {
+    color: colors.white,
+    fontSize: 18,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  carouselCardBody: {
+    padding: 16,
+  },
+  carouselTitle: {
+    color: colors.textPrimary,
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 12,
+  },
+  carouselFooter: {
+    marginTop: 4,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: colors.surfaceBorder,
+    gap: 10,
+  },
+  scheduleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  scheduleText: {
+    color: colors.textSubtle,
+    fontSize: 13,
+    lineHeight: 18,
+    flex: 1,
+  },
+  nextSessionText: {
+    color: colors.textPrimary,
+    fontSize: 13,
+    fontWeight: '600',
+  },
   actions: { marginTop: 8, gap: 8 },
   button: { backgroundColor: colors.primary, borderRadius: 10, padding: 12, alignItems: 'center' },
   buttonText: { color: colors.white, fontWeight: '600' },
