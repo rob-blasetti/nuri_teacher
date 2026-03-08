@@ -1,9 +1,10 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { ProgressStatus } from '../../types/entities';
+import { colors } from '../theme/colors';
 
 const statusMap: Record<ProgressStatus, { bg: string; text: string; label: string }> = {
-  not_started: { bg: '#E2E8F0', text: '#334155', label: 'Not started' },
+  not_started: { bg: colors.surfaceBorder, text: colors.textSoft, label: 'Not started' },
   learning: { bg: '#DBEAFE', text: '#1D4ED8', label: 'Learning' },
   partial: { bg: '#FEF3C7', text: '#92400E', label: 'Partial' },
   confident: { bg: '#DCFCE7', text: '#166534', label: 'Confident' },

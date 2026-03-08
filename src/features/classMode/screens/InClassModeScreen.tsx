@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { RootStackParamList } from '../../../app/navigation/types';
 import { getLessonById } from '../../../data/repositories/lessonRepository';
+import { colors } from '../../../shared/theme/colors';
 
 type RouteT = RouteProp<RootStackParamList, 'InClassMode'>;
 
@@ -68,32 +69,32 @@ export function InClassModeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F172A',
+    backgroundColor: colors.surface,
     padding: 20,
     justifyContent: 'center',
   },
   lesson: {
-    color: '#93C5FD',
+    color: colors.highlight,
     textAlign: 'center',
     marginBottom: 8,
     fontWeight: '700',
   },
   count: {
-    color: '#CBD5E1',
+    color: colors.textSoft,
     textAlign: 'center',
     marginBottom: 16,
   },
   card: {
     borderRadius: 16,
-    backgroundColor: '#1E293B',
+    backgroundColor: colors.surfaceSoft,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: colors.textSoft,
     padding: 20,
     minHeight: 180,
     justifyContent: 'center',
   },
   phrase: {
-    color: 'white',
+    color: colors.white,
     fontSize: 28,
     lineHeight: 38,
     textAlign: 'center',
@@ -106,16 +107,16 @@ const styles = StyleSheet.create({
   },
   button: {
     flex: 1,
-    backgroundColor: '#2563EB',
+    backgroundColor: colors.primary,
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
   },
   buttonDisabled: {
-    backgroundColor: '#334155',
+    backgroundColor: colors.textSoft,
   },
   buttonText: {
-    color: 'white',
+    color: colors.white,
     fontWeight: '600',
   },
 });

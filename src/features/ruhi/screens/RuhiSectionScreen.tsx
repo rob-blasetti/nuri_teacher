@@ -5,6 +5,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RuhiStackParamList } from '../../../app/navigation/types';
 import { RuhiSectionEntity } from '../../../types/entities';
 import { getRuhiSectionById, saveRuhiNote } from '../../../data/repositories/ruhiRepository';
+import { colors } from '../../../shared/theme/colors';
 
 type RouteT = RouteProp<RuhiStackParamList, 'RuhiSection'>;
 type Nav = NativeStackNavigationProp<RuhiStackParamList, 'RuhiSection'>;
@@ -71,21 +72,21 @@ export function RuhiSectionScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC', padding: 16 },
-  title: { fontSize: 22, fontWeight: '700', color: '#0F172A' },
-  body: { marginTop: 10, color: '#1E293B', lineHeight: 22 },
-  section: { marginTop: 14, marginBottom: 6, color: '#0F172A', fontWeight: '700' },
-  prompt: { color: '#334155', marginBottom: 4 },
+  container: { flex: 1, backgroundColor: colors.background, padding: 16 },
+  title: { fontSize: 22, fontWeight: '700', color: colors.textPrimary },
+  body: { marginTop: 10, color: colors.surfaceSoft, lineHeight: 22 },
+  section: { marginTop: 14, marginBottom: 6, color: colors.textPrimary, fontWeight: '700' },
+  prompt: { color: colors.textSoft, marginBottom: 4 },
   input: {
-    backgroundColor: 'white',
+    backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: colors.surfaceBorderSoft,
     borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 8,
-    color: '#0F172A',
+    color: colors.textPrimary,
   },
   multiline: { minHeight: 90, textAlignVertical: 'top' },
-  saveBtn: { marginTop: 14, backgroundColor: '#2563EB', borderRadius: 10, padding: 12, alignItems: 'center' },
-  saveText: { color: 'white', fontWeight: '600' },
+  saveBtn: { marginTop: 14, backgroundColor: colors.primary, borderRadius: 10, padding: 12, alignItems: 'center' },
+  saveText: { color: colors.white, fontWeight: '600' },
 });

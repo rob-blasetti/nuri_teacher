@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { colors } from '../../../shared/theme/colors';
 import {
   FlatList,
   Pressable,
@@ -165,7 +166,7 @@ export function ContentDetailScreen() {
         <TextInput
           style={styles.noteInput}
           placeholder={selectedStudentId ? 'Write encouragement or observation' : 'Select a student first'}
-          placeholderTextColor="#64748B"
+          placeholderTextColor={colors.textMuted}
           value={note}
           onChangeText={setNote}
           editable={Boolean(selectedStudentId)}
@@ -181,28 +182,28 @@ export function ContentDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
     padding: 16,
   },
   title: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#0F172A',
+    color: colors.textPrimary,
   },
   meta: {
     marginTop: 4,
-    color: '#475569',
+    color: colors.textMuted,
     marginBottom: 10,
   },
   text: {
-    color: '#1E293B',
+    color: colors.surfaceSoft,
     lineHeight: 22,
   },
   section: {
     marginTop: 14,
     marginBottom: 6,
     fontWeight: '700',
-    color: '#0F172A',
+    color: colors.textPrimary,
   },
   progressHeader: {
     marginTop: 8,
@@ -213,17 +214,17 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: '#CBD5E1',
-    backgroundColor: '#F8FAFC',
+    borderColor: colors.surfaceBorderSoft,
+    backgroundColor: colors.background,
     paddingHorizontal: 10,
     paddingVertical: 6,
   },
   attentionBtnActive: {
-    borderColor: '#2563EB',
+    borderColor: colors.primary,
     backgroundColor: '#DBEAFE',
   },
   attentionBtnText: {
-    color: '#334155',
+    color: colors.textSoft,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -231,7 +232,7 @@ const styles = StyleSheet.create({
     color: '#1D4ED8',
   },
   phrase: {
-    color: '#334155',
+    color: colors.textSoft,
     marginBottom: 4,
   },
   list: {
@@ -240,14 +241,14 @@ const styles = StyleSheet.create({
   },
   studentCard: {
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.surfaceBorder,
     borderRadius: 12,
     padding: 12,
-    backgroundColor: 'white',
+    backgroundColor: colors.white,
   },
   studentName: {
     fontWeight: '600',
-    color: '#0F172A',
+    color: colors.textPrimary,
   },
   metaRow: {
     marginTop: 6,
@@ -256,7 +257,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   studentMeta: {
-    color: '#64748B',
+    color: colors.textMuted,
   },
   statusRow: {
     flexDirection: 'row',
@@ -267,37 +268,37 @@ const styles = StyleSheet.create({
   statusChip: {
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: colors.surfaceBorderSoft,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
   },
   statusChipActive: {
-    backgroundColor: '#2563EB',
-    borderColor: '#2563EB',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   statusChipText: {
-    color: '#334155',
+    color: colors.textSoft,
     fontSize: 12,
   },
   statusChipTextActive: {
-    color: 'white',
+    color: colors.white,
   },
   note: {
     marginTop: 8,
-    color: '#334155',
+    color: colors.textSoft,
     fontStyle: 'italic',
   },
   noteButton: {
     marginTop: 8,
     alignSelf: 'flex-start',
-    backgroundColor: '#E2E8F0',
+    backgroundColor: colors.surfaceBorder,
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 6,
   },
   noteButtonText: {
-    color: '#0F172A',
+    color: colors.textPrimary,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -306,29 +307,29 @@ const styles = StyleSheet.create({
     left: 16,
     right: 16,
     bottom: 16,
-    backgroundColor: 'white',
+    backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.surfaceBorder,
     borderRadius: 12,
     padding: 10,
     gap: 8,
   },
   noteInput: {
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: colors.surfaceBorderSoft,
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 8,
-    color: '#0F172A',
+    color: colors.textPrimary,
   },
   saveButton: {
-    backgroundColor: '#2563EB',
+    backgroundColor: colors.primary,
     borderRadius: 8,
     paddingVertical: 10,
     alignItems: 'center',
   },
   saveButtonText: {
-    color: 'white',
+    color: colors.white,
     fontWeight: '600',
   },
 });

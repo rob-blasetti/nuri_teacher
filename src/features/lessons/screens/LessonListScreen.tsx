@@ -5,6 +5,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../../app/navigation/types';
 import { LessonPlanEntity } from '../../../types/entities';
 import { listLessons } from '../../../data/repositories/lessonRepository';
+import { colors } from '../../../shared/theme/colors';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
@@ -67,21 +68,21 @@ export function LessonListScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC', padding: 16 },
-  title: { fontSize: 24, fontWeight: '700', color: '#0F172A', marginBottom: 10 },
-  newBtn: { backgroundColor: '#2563EB', borderRadius: 10, padding: 10, alignSelf: 'flex-start' },
-  newBtnText: { color: 'white', fontWeight: '600' },
+  container: { flex: 1, backgroundColor: colors.background, padding: 16 },
+  title: { fontSize: 24, fontWeight: '700', color: colors.textPrimary, marginBottom: 10 },
+  newBtn: { backgroundColor: colors.primary, borderRadius: 10, padding: 10, alignSelf: 'flex-start' },
+  newBtnText: { color: colors.white, fontWeight: '600' },
   list: { gap: 10, paddingTop: 10, paddingBottom: 20 },
-  empty: { color: '#64748B', marginTop: 10 },
+  empty: { color: colors.textMuted, marginTop: 10 },
   card: {
-    backgroundColor: 'white',
+    backgroundColor: colors.white,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.surfaceBorder,
     padding: 12,
   },
-  cardTitle: { fontSize: 16, fontWeight: '600', color: '#0F172A' },
-  cardMeta: { marginTop: 3, color: '#475569' },
+  cardTitle: { fontSize: 16, fontWeight: '600', color: colors.textPrimary },
+  cardMeta: { marginTop: 3, color: colors.textMuted },
   actionsRow: {
     flexDirection: 'row',
     gap: 8,
@@ -89,19 +90,19 @@ const styles = StyleSheet.create({
   },
   actionBtn: {
     flex: 1,
-    backgroundColor: '#2563EB',
+    backgroundColor: colors.primary,
     borderRadius: 10,
     paddingVertical: 10,
     alignItems: 'center',
   },
   secondaryBtn: {
-    backgroundColor: '#E2E8F0',
+    backgroundColor: colors.surfaceBorder,
   },
   actionText: {
-    color: 'white',
+    color: colors.white,
     fontWeight: '600',
   },
   secondaryText: {
-    color: '#0F172A',
+    color: colors.textPrimary,
   },
 });

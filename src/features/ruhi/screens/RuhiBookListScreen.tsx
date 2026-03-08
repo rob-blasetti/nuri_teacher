@@ -5,6 +5,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RuhiStackParamList } from '../../../app/navigation/types';
 import { RuhiBookEntity } from '../../../types/entities';
 import { listRuhiBooks, listRuhiSections } from '../../../data/repositories/ruhiRepository';
+import { colors } from '../../../shared/theme/colors';
 
 type Nav = NativeStackNavigationProp<RuhiStackParamList, 'RuhiBookList'>;
 
@@ -53,12 +54,12 @@ export function RuhiBookListScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC', padding: 16 },
-  title: { fontSize: 24, fontWeight: '700', color: '#0F172A', marginBottom: 12 },
+  container: { flex: 1, backgroundColor: colors.background, padding: 16 },
+  title: { fontSize: 24, fontWeight: '700', color: colors.textPrimary, marginBottom: 12 },
   list: { gap: 10, paddingBottom: 16 },
-  card: { backgroundColor: 'white', borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0', padding: 12 },
-  cardTitle: { fontSize: 16, fontWeight: '600', color: '#0F172A' },
-  cardMeta: { marginTop: 3, color: '#475569' },
-  journalBtn: { backgroundColor: '#2563EB', borderRadius: 10, padding: 12, alignItems: 'center' },
-  journalText: { color: 'white', fontWeight: '600' },
+  card: { backgroundColor: colors.white, borderRadius: 12, borderWidth: 1, borderColor: colors.surfaceBorder, padding: 12 },
+  cardTitle: { fontSize: 16, fontWeight: '600', color: colors.textPrimary },
+  cardMeta: { marginTop: 3, color: colors.textMuted },
+  journalBtn: { backgroundColor: colors.primary, borderRadius: 10, padding: 12, alignItems: 'center' },
+  journalText: { color: colors.white, fontWeight: '600' },
 });

@@ -3,6 +3,7 @@ import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { RuhiNoteEntity } from '../../../types/entities';
 import { listRuhiNotes } from '../../../data/repositories/ruhiRepository';
+import { colors } from '../../../shared/theme/colors';
 
 export function RuhiJournalScreen() {
   const [notes, setNotes] = useState<RuhiNoteEntity[]>([]);
@@ -41,12 +42,12 @@ export function RuhiJournalScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC', padding: 16 },
-  title: { fontSize: 24, fontWeight: '700', color: '#0F172A', marginBottom: 12 },
+  container: { flex: 1, backgroundColor: colors.background, padding: 16 },
+  title: { fontSize: 24, fontWeight: '700', color: colors.textPrimary, marginBottom: 12 },
   list: { gap: 10 },
-  empty: { color: '#64748B' },
-  card: { backgroundColor: 'white', borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 12, padding: 12 },
-  meta: { color: '#64748B', fontSize: 12, marginBottom: 6 },
-  body: { color: '#1E293B' },
-  apply: { marginTop: 8, color: '#0F172A', fontWeight: '600' },
+  empty: { color: colors.textMuted },
+  card: { backgroundColor: colors.white, borderWidth: 1, borderColor: colors.surfaceBorder, borderRadius: 12, padding: 12 },
+  meta: { color: colors.textMuted, fontSize: 12, marginBottom: 6 },
+  body: { color: colors.surfaceSoft },
+  apply: { marginTop: 8, color: colors.textPrimary, fontWeight: '600' },
 });

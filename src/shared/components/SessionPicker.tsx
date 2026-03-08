@@ -1,6 +1,7 @@
 import React from 'react';
 import { FlatList, Pressable, StyleSheet, Text } from 'react-native';
 import { ClassSession } from '../../data/repositories/attendanceRepository';
+import { colors } from '../theme/colors';
 
 type Props = {
   sessions: ClassSession[];
@@ -33,14 +34,14 @@ export function SessionPicker({ sessions, value, onChange }: Props) {
 const styles = StyleSheet.create({
   row: { gap: 8, paddingVertical: 4 },
   chip: {
-    backgroundColor: '#E2E8F0',
+    backgroundColor: colors.surfaceBorder,
     borderRadius: 999,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
   chipActive: {
-    backgroundColor: '#2563EB',
+    backgroundColor: colors.primary,
   },
-  text: { color: '#0F172A', fontWeight: '600' },
-  textActive: { color: 'white' },
+  text: { color: colors.textPrimary, fontWeight: '600' },
+  textActive: { color: colors.white },
 });

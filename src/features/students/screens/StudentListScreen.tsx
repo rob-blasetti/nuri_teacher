@@ -5,6 +5,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { StudentsStackParamList } from '../../../app/navigation/types';
 import { StudentEntity } from '../../../types/entities';
 import { listStudents } from '../../../data/repositories/studentRepository';
+import { colors } from '../../../shared/theme/colors';
 
 type NavProp = NativeStackNavigationProp<StudentsStackParamList, 'StudentList'>;
 type RouteT = RouteProp<StudentsStackParamList, 'StudentList'>;
@@ -51,34 +52,34 @@ export function StudentListScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
     padding: 16,
   },
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#0F172A',
+    color: colors.textPrimary,
     marginBottom: 4,
   },
   sub: {
-    color: '#64748B',
+    color: colors.textMuted,
     marginBottom: 10,
   },
   list: { gap: 10 },
   card: {
-    backgroundColor: 'white',
+    backgroundColor: colors.white,
     borderRadius: 12,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.surfaceBorder,
   },
   cardTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#0F172A',
+    color: colors.textPrimary,
   },
   cardMeta: {
     marginTop: 3,
-    color: '#475569',
+    color: colors.textMuted,
   },
 });

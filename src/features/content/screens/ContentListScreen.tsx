@@ -1,4 +1,5 @@
 import React, { useCallback, useState } from 'react';
+import { colors } from '../../../shared/theme/colors';
 import {
   FlatList,
   Pressable,
@@ -41,7 +42,7 @@ export function ContentListScreen() {
         value={query}
         onChangeText={setQuery}
         placeholder="Search title or text"
-        placeholderTextColor="#64748B"
+        placeholderTextColor={colors.textMuted}
         onSubmitEditing={load}
       />
 
@@ -88,23 +89,23 @@ export function ContentListScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
     padding: 16,
   },
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#0F172A',
+    color: colors.textPrimary,
     marginBottom: 12,
   },
   search: {
-    backgroundColor: 'white',
+    backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: colors.surfaceBorderSoft,
     borderRadius: 10,
     paddingHorizontal: 12,
     height: 42,
-    color: '#0F172A',
+    color: colors.textPrimary,
     marginBottom: 10,
   },
   filterRow: {
@@ -113,41 +114,41 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   chip: {
-    backgroundColor: '#E2E8F0',
+    backgroundColor: colors.surfaceBorder,
     borderRadius: 999,
     paddingVertical: 6,
     paddingHorizontal: 12,
   },
   chipActive: {
-    backgroundColor: '#2563EB',
+    backgroundColor: colors.primary,
   },
   chipText: {
-    color: '#0F172A',
+    color: colors.textPrimary,
     fontWeight: '500',
   },
   chipTextActive: {
-    color: 'white',
+    color: colors.white,
   },
   list: { gap: 10 },
   card: {
-    backgroundColor: 'white',
+    backgroundColor: colors.white,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.surfaceBorder,
     padding: 14,
   },
   cardTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#0F172A',
+    color: colors.textPrimary,
   },
   cardMeta: {
     marginTop: 2,
-    color: '#475569',
+    color: colors.textMuted,
     fontSize: 12,
   },
   preview: {
     marginTop: 8,
-    color: '#334155',
+    color: colors.textSoft,
   },
 });

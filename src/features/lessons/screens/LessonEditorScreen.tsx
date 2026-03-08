@@ -7,6 +7,7 @@ import { createLesson, getLessonById } from '../../../data/repositories/lessonRe
 import { listClasses } from '../../../data/repositories/classRepository';
 import { ClassEntity } from '../../../types/entities';
 import { ClassPicker } from '../../../shared/components/ClassPicker';
+import { colors } from '../../../shared/theme/colors';
 
 type RouteT = RouteProp<RootStackParamList, 'LessonEditor'>;
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -79,18 +80,18 @@ export function LessonEditorScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC', padding: 16 },
-  title: { fontSize: 22, fontWeight: '700', color: '#0F172A', marginBottom: 12 },
-  label: { color: '#334155', marginBottom: 4, marginTop: 8 },
+  container: { flex: 1, backgroundColor: colors.background, padding: 16 },
+  title: { fontSize: 22, fontWeight: '700', color: colors.textPrimary, marginBottom: 12 },
+  label: { color: colors.textSoft, marginBottom: 4, marginTop: 8 },
   input: {
-    backgroundColor: 'white',
+    backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: colors.surfaceBorderSoft,
     borderRadius: 10,
     paddingHorizontal: 10,
     height: 42,
-    color: '#0F172A',
+    color: colors.textPrimary,
   },
-  saveBtn: { marginTop: 16, backgroundColor: '#2563EB', borderRadius: 10, padding: 12, alignItems: 'center' },
-  saveText: { color: 'white', fontWeight: '600' },
+  saveBtn: { marginTop: 16, backgroundColor: colors.primary, borderRadius: 10, padding: 12, alignItems: 'center' },
+  saveText: { color: colors.white, fontWeight: '600' },
 });

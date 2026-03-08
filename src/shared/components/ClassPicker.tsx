@@ -1,6 +1,7 @@
 import React from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { ClassEntity } from '../../types/entities';
+import { colors } from '../theme/colors';
 
 type Props = {
   classes: ClassEntity[];
@@ -34,15 +35,15 @@ export function ClassPicker({ classes, value, onChange }: Props) {
 const styles = StyleSheet.create({
   row: { gap: 8, paddingVertical: 4 },
   chip: {
-    backgroundColor: '#E2E8F0',
+    backgroundColor: colors.surfaceBorder,
     borderRadius: 999,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
   chipActive: {
-    backgroundColor: '#2563EB',
+    backgroundColor: colors.primary,
   },
-  chipText: { color: '#0F172A', fontWeight: '600' },
-  chipTextActive: { color: 'white' },
-  empty: { color: '#64748B' },
+  chipText: { color: colors.textPrimary, fontWeight: '600' },
+  chipTextActive: { color: colors.white },
+  empty: { color: colors.textMuted },
 });

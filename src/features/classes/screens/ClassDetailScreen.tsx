@@ -7,6 +7,7 @@ import { ClassEntity } from '../../../types/entities';
 import { getClassById } from '../../../data/repositories/classRepository';
 import { listStudents } from '../../../data/repositories/studentRepository';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { colors } from '../../../shared/theme/colors';
 
 type RouteT = RouteProp<ClassesStackParamList, 'ClassDetail'>;
 type ClassNav = NativeStackNavigationProp<ClassesStackParamList, 'ClassDetail'>;
@@ -85,42 +86,42 @@ export function ClassDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
     padding: 16,
   },
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#0F172A',
+    color: colors.textPrimary,
     marginBottom: 12,
   },
   meta: {
     fontSize: 16,
-    color: '#334155',
+    color: colors.textSoft,
     marginBottom: 6,
   },
   notes: {
     marginTop: 8,
-    color: '#475569',
+    color: colors.textMuted,
   },
   actions: {
     marginTop: 20,
     gap: 10,
   },
   button: {
-    backgroundColor: '#2563EB',
+    backgroundColor: colors.primary,
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
   },
   buttonText: {
-    color: 'white',
+    color: colors.white,
     fontWeight: '600',
   },
   secondary: {
-    backgroundColor: '#E2E8F0',
+    backgroundColor: colors.surfaceBorder,
   },
   secondaryText: {
-    color: '#0F172A',
+    color: colors.textPrimary,
   },
 });

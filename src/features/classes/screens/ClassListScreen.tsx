@@ -1,4 +1,5 @@
 import React, { useCallback, useState } from 'react';
+import { colors } from '../../../shared/theme/colors';
 import {
   FlatList,
   Pressable,
@@ -59,7 +60,7 @@ export function ClassListScreen() {
           value={name}
           onChangeText={setName}
           placeholder="Add class name"
-          placeholderTextColor="#64748B"
+          placeholderTextColor={colors.textMuted}
         />
         <Pressable style={styles.button} onPress={onAddClass}>
           <Text style={styles.buttonText}>Add</Text>
@@ -88,13 +89,13 @@ export function ClassListScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
     padding: 16,
   },
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#0F172A',
+    color: colors.textPrimary,
     marginBottom: 12,
   },
   addRow: {
@@ -104,42 +105,42 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: colors.surfaceBorderSoft,
     borderRadius: 10,
     paddingHorizontal: 12,
     height: 42,
-    color: '#0F172A',
+    color: colors.textPrimary,
   },
   button: {
-    backgroundColor: '#2563EB',
+    backgroundColor: colors.primary,
     borderRadius: 10,
     height: 42,
     paddingHorizontal: 16,
     justifyContent: 'center',
   },
   buttonText: {
-    color: 'white',
+    color: colors.white,
     fontWeight: '600',
   },
   list: {
     gap: 10,
   },
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
     borderRadius: 12,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.surfaceBorder,
   },
   cardTitle: {
     fontSize: 17,
     fontWeight: '600',
-    color: '#0F172A',
+    color: colors.textPrimary,
   },
   cardMeta: {
     marginTop: 2,
-    color: '#475569',
+    color: colors.textMuted,
   },
 });

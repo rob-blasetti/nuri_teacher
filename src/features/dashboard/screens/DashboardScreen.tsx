@@ -4,6 +4,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { listClasses } from '../../../data/repositories/classRepository';
 import { listStudents } from '../../../data/repositories/studentRepository';
 import { getDb } from '../../../data/db/client';
+import { colors } from '../../../shared/theme/colors';
 
 export function DashboardScreen() {
   const navigation = useNavigation<any>();
@@ -68,21 +69,21 @@ export function DashboardScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC', padding: 16 },
-  title: { fontSize: 24, fontWeight: '700', color: '#0F172A', marginBottom: 12 },
+  container: { flex: 1, backgroundColor: colors.background, padding: 16 },
+  title: { fontSize: 24, fontWeight: '700', color: colors.textPrimary, marginBottom: 12 },
   row: { flexDirection: 'row', gap: 10 },
   half: { flex: 1 },
   card: {
-    backgroundColor: 'white',
+    backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.surfaceBorder,
     borderRadius: 12,
     padding: 12,
     marginBottom: 10,
   },
-  label: { color: '#64748B', marginBottom: 4 },
-  value: { color: '#0F172A', fontWeight: '700', fontSize: 16 },
+  label: { color: colors.textMuted, marginBottom: 4 },
+  value: { color: colors.textPrimary, fontWeight: '700', fontSize: 16 },
   actions: { marginTop: 8, gap: 8 },
-  button: { backgroundColor: '#2563EB', borderRadius: 10, padding: 12, alignItems: 'center' },
-  buttonText: { color: 'white', fontWeight: '600' },
+  button: { backgroundColor: colors.primary, borderRadius: 10, padding: 12, alignItems: 'center' },
+  buttonText: { color: colors.white, fontWeight: '600' },
 });

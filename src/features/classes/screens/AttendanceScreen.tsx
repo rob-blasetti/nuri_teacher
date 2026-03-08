@@ -4,6 +4,7 @@ import { RouteProp, useFocusEffect, useRoute } from '@react-navigation/native';
 import { ClassesStackParamList } from '../../../app/navigation/types';
 import { StudentEntity } from '../../../types/entities';
 import { listStudents } from '../../../data/repositories/studentRepository';
+import { colors } from '../../../shared/theme/colors';
 import {
   AttendanceStatus,
   ClassSession,
@@ -118,13 +119,13 @@ export function AttendanceScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC', padding: 16 },
-  title: { fontSize: 24, fontWeight: '700', color: '#0F172A' },
-  subtitle: { marginTop: 4, marginBottom: 6, color: '#475569' },
+  container: { flex: 1, backgroundColor: colors.background, padding: 16 },
+  title: { fontSize: 24, fontWeight: '700', color: colors.textPrimary },
+  subtitle: { marginTop: 4, marginBottom: 6, color: colors.textMuted },
   summaryRow: { flexDirection: 'row', gap: 10, marginTop: 8, marginBottom: 8 },
   summary: {
-    backgroundColor: '#E2E8F0',
-    color: '#0F172A',
+    backgroundColor: colors.surfaceBorder,
+    color: colors.textPrimary,
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -133,18 +134,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   list: { gap: 10, paddingBottom: 20 },
-  card: { backgroundColor: 'white', borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 12, padding: 12 },
-  name: { fontSize: 16, fontWeight: '600', color: '#0F172A', marginBottom: 8 },
+  card: { backgroundColor: colors.white, borderWidth: 1, borderColor: colors.surfaceBorder, borderRadius: 12, padding: 12 },
+  name: { fontSize: 16, fontWeight: '600', color: colors.textPrimary, marginBottom: 8 },
   row: { flexDirection: 'row', gap: 8 },
   chip: {
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: colors.surfaceBorderSoft,
     paddingHorizontal: 10,
     paddingVertical: 6,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
   },
-  chipActive: { backgroundColor: '#2563EB', borderColor: '#2563EB' },
-  chipText: { color: '#334155', fontWeight: '600', textTransform: 'capitalize' },
-  chipTextActive: { color: 'white' },
+  chipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+  chipText: { color: colors.textSoft, fontWeight: '600', textTransform: 'capitalize' },
+  chipTextActive: { color: colors.white },
 });
