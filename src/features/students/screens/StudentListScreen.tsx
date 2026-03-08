@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: colors.textPrimary,
+    color: colors.textOnWhite,
   },
   cardMeta: {
     marginTop: 3,

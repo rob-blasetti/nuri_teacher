@@ -49,5 +49,5 @@ const styles = StyleSheet.create({
   card: { backgroundColor: colors.white, borderWidth: 1, borderColor: colors.surfaceBorder, borderRadius: 12, padding: 12 },
   meta: { color: colors.textMuted, fontSize: 12, marginBottom: 6 },
   body: { color: colors.surfaceSoft },
-  apply: { marginTop: 8, color: colors.textPrimary, fontWeight: '600' },
+  apply: { marginTop: 8, color: colors.textOnWhite, fontWeight: '600' },
 });

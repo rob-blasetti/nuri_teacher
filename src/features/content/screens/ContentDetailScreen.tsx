@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
   },
   studentName: {
     fontWeight: '600',
-    color: colors.textPrimary,
+    color: colors.textOnWhite,
   },
   metaRow: {
     marginTop: 6,
@@ -320,7 +320,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 8,
-    color: colors.textPrimary,
+    color: colors.textOnWhite,
   },
   saveButton: {
     backgroundColor: colors.primary,

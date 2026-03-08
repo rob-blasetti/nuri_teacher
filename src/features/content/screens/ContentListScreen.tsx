@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 12,
     height: 42,
-    color: colors.textPrimary,
+    color: colors.textOnWhite,
     marginBottom: 10,
   },
   filterRow: {
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
   },
   chipText: {
-    color: colors.textPrimary,
+    color: colors.textSoft,
     fontWeight: '500',
   },
   chipTextActive: {
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: colors.textPrimary,
+    color: colors.textOnWhite,
   },
   cardMeta: {
     marginTop: 2,

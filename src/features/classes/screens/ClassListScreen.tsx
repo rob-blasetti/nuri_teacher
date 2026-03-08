@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 12,
     height: 42,
-    color: colors.textPrimary,
+    color: colors.textOnWhite,
   },
   button: {
     backgroundColor: colors.primary,
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 17,
     fontWeight: '600',
-    color: colors.textPrimary,
+    color: colors.textOnWhite,
   },
   cardMeta: {
     marginTop: 2,

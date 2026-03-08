@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
     borderColor: colors.surfaceBorder,
     padding: 12,
   },
-  cardTitle: { fontSize: 16, fontWeight: '600', color: colors.textPrimary },
+  cardTitle: { fontSize: 16, fontWeight: '600', color: colors.textOnWhite },
   cardMeta: { marginTop: 3, color: colors.textMuted },
   actionsRow: {
     flexDirection: 'row',

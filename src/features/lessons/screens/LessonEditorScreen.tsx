@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 10,
     height: 42,
-    color: colors.textPrimary,
+    color: colors.textOnWhite,
   },
   saveBtn: { marginTop: 16, backgroundColor: colors.primary, borderRadius: 10, padding: 12, alignItems: 'center' },
   saveText: { color: colors.white, fontWeight: '600' },

@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 8,
-    color: colors.textPrimary,
+    color: colors.textOnWhite,
   },
   multiline: { minHeight: 90, textAlignVertical: 'top' },
   saveBtn: { marginTop: 14, backgroundColor: colors.primary, borderRadius: 10, padding: 12, alignItems: 'center' },

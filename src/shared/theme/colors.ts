@@ -21,6 +21,8 @@ export const colors = {
   textPrimary: '#F6F7FF',
   textMuted: 'rgba(246, 247, 255, 0.72)',
   textSoft: 'rgba(246, 247, 255, 0.88)',
+  textOnDark: '#F6F7FF',
+  textOnWhite: '#101828',
   textSubtle: '#C7D2FE',
 
   primary: '#5B4BFF',

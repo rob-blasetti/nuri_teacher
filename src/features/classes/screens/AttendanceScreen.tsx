@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
   },
   list: { gap: 10, paddingBottom: 20 },
   card: { backgroundColor: colors.white, borderWidth: 1, borderColor: colors.surfaceBorder, borderRadius: 12, padding: 12 },
-  name: { fontSize: 16, fontWeight: '600', color: colors.textPrimary, marginBottom: 8 },
+  name: { fontSize: 16, fontWeight: '600', color: colors.textOnWhite, marginBottom: 8 },
   row: { flexDirection: 'row', gap: 8 },
   chip: {
     borderRadius: 999,
