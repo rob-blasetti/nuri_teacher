@@ -16,12 +16,14 @@ import { CommunityScreen } from '../../features/community/screens/CommunityScree
 import { StudentListScreen } from '../../features/students/screens/StudentListScreen';
 import { StudentDetailScreen } from '../../features/students/screens/StudentDetailScreen';
 import { LessonEditorScreen } from '../../features/lessons/screens/LessonEditorScreen';
+import { GradesScreen } from '../../features/lessons/screens/GradesScreen';
 import { LessonListScreen } from '../../features/lessons/screens/LessonListScreen';
 import { LessonDetailScreen } from '../../features/lessons/screens/LessonDetailScreen';
 import { InClassModeScreen } from '../../features/classMode/screens/InClassModeScreen';
 import { RuhiBookListScreen } from '../../features/ruhi/screens/RuhiBookListScreen';
 import { RuhiSectionScreen } from '../../features/ruhi/screens/RuhiSectionScreen';
 import { RuhiJournalScreen } from '../../features/ruhi/screens/RuhiJournalScreen';
+import { SettingsScreen } from '../../features/settings/screens/SettingsScreen';
 
 const RootStack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
@@ -53,6 +55,7 @@ function LessonsNavigator() {
         headerTitleStyle: { color: colors.textPrimary },
       }}
     >
+      <LessonsStack.Screen name="Grades" component={GradesScreen} options={{ title: 'Grades' }} />
       <LessonsStack.Screen name="LessonList" component={LessonListScreen} options={{ title: 'Lesson Plans' }} />
       <LessonsStack.Screen name="LessonDetail" component={LessonDetailScreen} options={{ title: 'Lesson Detail' }} />
     </LessonsStack.Navigator>
@@ -112,6 +115,9 @@ function TabsNavigator() {
             case 'RuhiStack':
               iconName = focused ? 'sparkles' : 'sparkles-outline';
               break;
+            case 'Settings':
+              iconName = focused ? 'settings' : 'settings-outline';
+              break;
             default:
               iconName = focused ? 'ellipse' : 'ellipse-outline';
           }
@@ -124,6 +130,7 @@ function TabsNavigator() {
       <Tab.Screen name="StudentsStack" component={StudentsNavigator} options={{ title: 'Students', headerShown: false }} />
       <Tab.Screen name="LessonsStack" component={LessonsNavigator} options={{ title: 'Lessons', headerShown: false }} />
       <Tab.Screen name="RuhiStack" component={RuhiNavigator} options={{ title: 'Ruhi', headerShown: false }} />
+      <Tab.Screen name="Settings" component={SettingsScreen} />
     </Tab.Navigator>
   );
 }

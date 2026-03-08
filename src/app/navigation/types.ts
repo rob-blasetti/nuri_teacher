@@ -10,6 +10,7 @@ export type TabParamList = {
   StudentsStack: undefined;
   LessonsStack: undefined;
   RuhiStack: undefined;
+  Settings: undefined;
 };
 
 export type StudentsStackParamList = {
@@ -18,6 +19,7 @@ export type StudentsStackParamList = {
 };
 
 export type LessonsStackParamList = {
+  Grades: undefined;
   LessonList: undefined;
   LessonDetail: { lessonId: string };
 };
