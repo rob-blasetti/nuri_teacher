@@ -1,6 +1,6 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { StudentsStackParamList } from '../../../app/navigation/types';
 import { colors } from '../../../shared/theme/colors';
@@ -15,42 +15,53 @@ type LiveStudentItem = {
   classNames: string[];
 };
 
+function buildStudentsFromClasses(myClasses: ReturnType<typeof useClasses>['myClasses']): LiveStudentItem[] {
+  const studentMap = new Map<string, LiveStudentItem>();
+
+  for (const classItem of myClasses) {
+    classItem.participantIds.forEach((participantId, index) => {
+      const participantName = classItem.participants[index] ?? 'Unnamed student';
+      const existing = studentMap.get(participantId);
+
+      if (existing) {
+        if (!existing.classIds.includes(classItem.id)) {
+          existing.classIds.push(classItem.id);
+        }
+        if (!existing.classNames.includes(classItem.name)) {
+          existing.classNames.push(classItem.name);
+        }
+        if (!existing.name || existing.name === 'Unnamed student') {
+          existing.name = participantName;
+        }
+        return;
+      }
+
+      studentMap.set(participantId, {
+        id: participantId,
+        name: participantName,
+        classIds: [classItem.id],
+        classNames: [classItem.name],
+      });
+    });
+  }
+
+  return Array.from(studentMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+}
+
 export function StudentListScreen() {
   const navigation = useNavigation<NavProp>();
   const { myClasses } = useClasses();
+  const [students, setStudents] = useState<LiveStudentItem[]>([]);
 
-  const students = useMemo<LiveStudentItem[]>(() => {
-    const studentMap = new Map<string, LiveStudentItem>();
-
-    for (const classItem of myClasses) {
-      classItem.participantIds.forEach((participantId, index) => {
-        const participantName = classItem.participants[index] ?? 'Unnamed student';
-        const existing = studentMap.get(participantId);
-
-        if (existing) {
-          if (!existing.classIds.includes(classItem.id)) {
-            existing.classIds.push(classItem.id);
-          }
-          if (!existing.classNames.includes(classItem.name)) {
-            existing.classNames.push(classItem.name);
-          }
-          if (!existing.name || existing.name === 'Unnamed student') {
-            existing.name = participantName;
-          }
-          return;
-        }
-
-        studentMap.set(participantId, {
-          id: participantId,
-          name: participantName,
-          classIds: [classItem.id],
-          classNames: [classItem.name],
-        });
-      });
-    }
-
-    return Array.from(studentMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+  const load = useCallback(() => {
+    setStudents(buildStudentsFromClasses(myClasses));
   }, [myClasses]);
+
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load]),
+  );
 
   return (
     <View style={styles.container}>
