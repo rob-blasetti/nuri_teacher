@@ -956,6 +956,8 @@ export const curriculumLessons: CurriculumLesson[] = [
   {
     "id": "grade-2-1-1",
     "grade": "Grade 2",
+    "set": "Set 1",
+    "lessonNumber": "1.1",
     "title": "Lesson 1.1",
     "subtitle": "Lessons for Children’s Classes, Grade 2",
     "sections": [
@@ -994,6 +996,8 @@ export const curriculumLessons: CurriculumLesson[] = [
   {
     "id": "grade-2-1-2",
     "grade": "Grade 2",
+    "set": "Set 1",
+    "lessonNumber": "1.2",
     "title": "Lesson 1.2",
     "subtitle": "Lessons for Children’s Classes, Grade 2",
     "sections": [
@@ -1032,6 +1036,8 @@ export const curriculumLessons: CurriculumLesson[] = [
   {
     "id": "grade-2-1-3",
     "grade": "Grade 2",
+    "set": "Set 1",
+    "lessonNumber": "1.3",
     "title": "Lesson 1.3",
     "subtitle": "Lessons for Children’s Classes, Grade 2",
     "sections": [
@@ -1075,6 +1081,8 @@ export const curriculumLessons: CurriculumLesson[] = [
   {
     "id": "grade-2-2-1",
     "grade": "Grade 2",
+    "set": "Set 2",
+    "lessonNumber": "2.1",
     "title": "Lesson 2.1",
     "subtitle": "Lessons for Children’s Classes, Grade 2",
     "sections": [
@@ -1113,6 +1121,8 @@ export const curriculumLessons: CurriculumLesson[] = [
   {
     "id": "grade-2-2-2",
     "grade": "Grade 2",
+    "set": "Set 2",
+    "lessonNumber": "2.2",
     "title": "Lesson 2.2",
     "subtitle": "Lessons for Children’s Classes, Grade 2",
     "sections": [
@@ -1151,6 +1161,8 @@ export const curriculumLessons: CurriculumLesson[] = [
   {
     "id": "grade-2-2-3",
     "grade": "Grade 2",
+    "set": "Set 2",
+    "lessonNumber": "2.3",
     "title": "Lesson 2.3",
     "subtitle": "Lessons for Children’s Classes, Grade 2",
     "sections": [
@@ -1189,6 +1201,8 @@ export const curriculumLessons: CurriculumLesson[] = [
   {
     "id": "grade-2-3-1",
     "grade": "Grade 2",
+    "set": "Set 3",
+    "lessonNumber": "3.1",
     "title": "Lesson 3.1",
     "subtitle": "Lessons for Children’s Classes, Grade 2",
     "sections": [
@@ -1222,6 +1236,8 @@ export const curriculumLessons: CurriculumLesson[] = [
   {
     "id": "grade-2-3-2",
     "grade": "Grade 2",
+    "set": "Set 3",
+    "lessonNumber": "3.2",
     "title": "Lesson 3.2",
     "subtitle": "Lessons for Children’s Classes, Grade 2",
     "sections": [
@@ -1255,6 +1271,8 @@ export const curriculumLessons: CurriculumLesson[] = [
   {
     "id": "grade-2-3-3",
     "grade": "Grade 2",
+    "set": "Set 3",
+    "lessonNumber": "3.3",
     "title": "Lesson 3.3",
     "subtitle": "Lessons for Children’s Classes, Grade 2",
     "sections": [
