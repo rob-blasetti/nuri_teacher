@@ -2,6 +2,7 @@ export type RootStackParamList = {
   Tabs: undefined;
   LessonEditor: { lessonId?: string } | undefined;
   InClassMode: { classId: string; lessonId?: string };
+  CreateClass: undefined;
 };
 
 export type TabParamList = {

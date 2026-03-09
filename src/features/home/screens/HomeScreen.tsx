@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -67,9 +67,14 @@ export function HomeScreen() {
         </View>
       </View>
 
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>My Classes</Text>
-        <Text style={styles.sectionSubtitle}>Swipe through your classes.</Text>
+      <View style={styles.sectionHeaderRow}>
+        <View style={styles.sectionHeaderCopy}>
+          <Text style={styles.sectionTitle}>My Classes</Text>
+          <Text style={styles.sectionSubtitle}>Swipe through your classes.</Text>
+        </View>
+        <Pressable style={styles.createButton} onPress={() => navigation.navigate('CreateClass')}>
+          <Text style={styles.createButtonText}>Create Class</Text>
+        </Pressable>
       </View>
 
       <ScrollView
@@ -186,9 +191,27 @@ const styles = StyleSheet.create({
   },
   label: { color: colors.textOnWhite, opacity: 0.75, marginBottom: 6, fontWeight: '600' },
   value: { color: colors.textOnWhite, fontWeight: '700', fontSize: 16 },
-  sectionHeader: { marginTop: 6, marginBottom: 10 },
+  sectionHeaderRow: {
+    marginTop: 6,
+    marginBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  sectionHeaderCopy: { flex: 1 },
   sectionTitle: { fontSize: 20, fontWeight: '700', color: colors.textPrimary },
   sectionSubtitle: { color: colors.textMuted, marginTop: 4 },
+  createButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  createButtonText: {
+    color: colors.white,
+    fontWeight: '700',
+  },
   carouselContent: { paddingRight: 16, gap: 12 },
   carouselCard: {
     width: 220,
