@@ -4,7 +4,13 @@ export type AuthUser = {
   email: string;
 };
 
+export type AuthCommunity = {
+  id: string;
+  name: string;
+};
+
 export type SignInResponse = {
   token: string;
   user: AuthUser;
+  community?: AuthCommunity;
 };

@@ -6,6 +6,12 @@ import { colors } from '../../../shared/theme/colors';
 export function SettingsScreen() {
   const { authSession, clearAuthSession } = useAuth();
 
+  const onLogout = () => {
+    clearAuthSession().catch(error => {
+      console.error('Failed to clear auth session', error);
+    });
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Settings</Text>
@@ -14,9 +20,10 @@ export function SettingsScreen() {
         <Text style={styles.label}>Signed in as</Text>
         <Text style={styles.value}>{authSession?.user.name ?? 'Guest'}</Text>
         <Text style={styles.meta}>{authSession?.user.email ?? 'guest@nuri.local'}</Text>
+        {authSession?.community ? <Text style={styles.meta}>Community: {authSession.community.name}</Text> : null}
       </View>
 
-      <Pressable style={styles.logoutButton} onPress={clearAuthSession}>
+      <Pressable style={styles.logoutButton} onPress={onLogout}>
         <Text style={styles.logoutButtonText}>Log Out</Text>
       </Pressable>
     </View>

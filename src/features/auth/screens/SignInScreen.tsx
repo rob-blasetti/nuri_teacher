@@ -20,16 +20,20 @@ export function SignInScreen() {
   const [error, setError] = useState<string>();
   const { setAuthSession } = useAuth();
 
-  const onContinueAsGuest = () => {
+  const onContinueAsGuest = async () => {
     setError(undefined);
-    setAuthSession({
-      token: 'guest-session',
-      user: {
-        id: 'guest-user',
-        name: 'Guest',
-        email: 'guest@nuri.local',
-      },
-    });
+    try {
+      await setAuthSession({
+        token: 'guest-session',
+        user: {
+          id: 'guest-user',
+          name: 'Guest',
+          email: 'guest@nuri.local',
+        },
+      });
+    } catch {
+      setError('Unable to start a guest session.');
+    }
   };
 
   const onSubmit = async () => {
@@ -44,7 +48,7 @@ export function SignInScreen() {
 
     try {
       const session = await signInWithAuthGateway(trimmedEmail, password);
-      setAuthSession(session);
+      await setAuthSession(session);
     } catch (submitError) {
       const message = submitError instanceof Error ? submitError.message : 'Unable to sign in.';
       setError(message);
