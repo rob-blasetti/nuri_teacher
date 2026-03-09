@@ -44,10 +44,7 @@ platform :ios do
     File.write(
       config_xcconfig_path,
       [
-        "API_URL=#{ENV['API_URL']}",
-        "AWS_ACCESS_KEY_ID=#{ENV['AWS_ACCESS_KEY_ID']}",
-        "AWS_SECRET_ACCESS_KEY=#{ENV['AWS_SECRET_ACCESS_KEY']}",
-        "AWS_REGION=#{ENV['AWS_REGION']}"
+        "API_URL=#{ENV['API_URL']}"
       ].join("\n") + "\n"
     )
 

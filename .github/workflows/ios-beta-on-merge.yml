@@ -1,0 +1,77 @@
+name: iOS TestFlight Beta
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: ios-beta-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  beta:
+    name: Build and upload beta
+    runs-on: macos-15
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Install JavaScript dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Install CocoaPods
+        run: |
+          cd ios
+          bundle exec pod install
+
+      - name: Write App Store Connect API key
+        env:
+          ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+        run: |
+          mkdir -p ios/fastlane/keys
+          printf '%s' "$ASC_API_KEY_P8" > ios/fastlane/keys/AuthKey.p8
+
+      - name: Write fastlane beta environment
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          API_URL: ${{ secrets.API_URL }}
+        run: |
+          cat > ios/fastlane/.env.beta <<EOF
+          ASC_KEY_ID=$ASC_KEY_ID
+          ASC_ISSUER_ID=$ASC_ISSUER_ID
+          ASC_KEY_FILE=./keys/AuthKey.p8
+          MATCH_PASSWORD=$MATCH_PASSWORD
+          API_URL=$API_URL
+          EOF
+
+      - name: Set up SSH key for match
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.MATCH_GIT_PRIVATE_KEY }}
+
+      - name: Trust GitHub host key
+        run: ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+      - name: Run fastlane beta
+        env:
+          CI: true
+        run: |
+          cd ios
+          bundle exec fastlane ios beta
