@@ -68,12 +68,6 @@ export async function getCommunityChildrensClasses(token: string): Promise<Commu
 
   const payload = (await readJson(response)) as CommunityChildrenClassesResponse | undefined;
 
-  console.log('Community classes API response', {
-    status: response.status,
-    ok: response.ok,
-    payload,
-  });
-
   if (!response.ok) {
     const message =
       typeof payload?.message === 'string' ? payload.message : "Unable to load community children's classes.";

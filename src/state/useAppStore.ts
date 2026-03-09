@@ -1,6 +1,5 @@
-import { AuthCommunity, AuthUser } from '../services/auth/types';
-
 import { create } from 'zustand';
+import { AuthCommunity, AuthUser } from '../services/auth/types';
 
 type AppState = {
   isBootstrapped: boolean;

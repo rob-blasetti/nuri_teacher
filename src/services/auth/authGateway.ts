@@ -13,7 +13,14 @@ type GatewayResponse = {
     id?: string;
     name?: string;
     fullName?: string;
+    firstName?: string;
+    lastName?: string;
     email?: string;
+    community?: {
+      _id?: string;
+      id?: string;
+      name?: string;
+    };
   };
 };
 
@@ -48,20 +55,8 @@ export async function signInWithAuthGateway(email: string, password: string): Pr
 
   return getAuthSessionForToken(token, {
     user: mapAuthUser(payload?.user, email),
+    community: mapAuthCommunity(payload?.user?.community),
   });
-}
-
-async function readJson(response: Response): Promise<unknown> {
-  const text = await response.text();
-  if (!text) {
-    return undefined;
-  }
-
-  try {
-    return JSON.parse(text);
-  } catch {
-    return undefined;
-  }
 }
 
 export async function getAuthSessionForToken(
@@ -100,22 +95,36 @@ async function getUserDetails(
 
   const userSource = pickObject(payload?.user) ?? pickObject(payload?.data) ?? payload;
   const communitySource = pickObject(userSource?.community) ?? pickObject(payload?.community);
+  const community = mapAuthCommunity(communitySource) ?? fallbackCommunity;
 
   return {
-    user: mapAuthUser(userSource, fallbackUser.email, fallbackUser),
-    community: mapAuthCommunity(communitySource) ?? fallbackCommunity,
+    user: mapAuthUser(userSource, fallbackUser.email, fallbackUser, community),
+    community,
   };
 }
 
-function mapAuthUser(source: unknown, fallbackEmail: string, fallbackUser?: AuthUser): AuthUser {
+function mapAuthUser(
+  source: unknown,
+  fallbackEmail: string,
+  fallbackUser?: AuthUser,
+  community?: AuthCommunity,
+): AuthUser {
   const user = pickObject(source);
   const email = pickString(user?.email) ?? fallbackUser?.email ?? fallbackEmail;
   const derivedName = email.split('@')[0] ?? 'Teacher';
 
   return {
-    id: pickString(user?.id) ?? fallbackUser?.id ?? email,
-    name: pickString(user?.name) ?? pickString(user?.fullName) ?? fallbackUser?.name ?? derivedName,
+    id: pickString(user?.id) ?? pickString(user?._id) ?? fallbackUser?.id ?? email,
+    name:
+      buildName(pickString(user?.firstName), pickString(user?.lastName)) ??
+      pickString(user?.name) ??
+      pickString(user?.fullName) ??
+      fallbackUser?.name ??
+      derivedName,
     email,
+    firstName: pickString(user?.firstName) ?? fallbackUser?.firstName,
+    lastName: pickString(user?.lastName) ?? fallbackUser?.lastName,
+    community: community ?? fallbackUser?.community,
   };
 }
 
@@ -138,6 +147,11 @@ function mapAuthCommunity(source: unknown): AuthCommunity | undefined {
   };
 }
 
+function buildName(firstName?: string, lastName?: string): string | undefined {
+  const fullName = [firstName, lastName].filter(Boolean).join(' ').trim();
+  return fullName || undefined;
+}
+
 function pickObject(value: unknown): Record<string, unknown> | undefined {
   if (value && typeof value === 'object' && !Array.isArray(value)) {
     return value as Record<string, unknown>;
@@ -148,4 +162,17 @@ function pickObject(value: unknown): Record<string, unknown> | undefined {
 
 function pickString(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim() ? value.trim() : undefined;
+}
+
+async function readJson(response: Response): Promise<unknown> {
+  const text = await response.text();
+  if (!text) {
+    return undefined;
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    return undefined;
+  }
 }

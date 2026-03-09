@@ -3,14 +3,18 @@ import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from '
 import { useClasses } from '../context/ClassesContext';
 import { colors } from '../../../shared/theme/colors';
 import { ClassCard } from '../components/ClassCard';
+import { useAuth } from '../../auth/context/AuthContext';
 
 export function CommunityScreen() {
+  const { authSession } = useAuth();
   const { classes, isLoading, error, refreshClasses } = useClasses();
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Community</Text>
-      <Text style={styles.subtitle}>See every class in the community together with its facilitators and participants.</Text>
+      <Text style={styles.subtitle}>
+        Children&apos;s Classes from {authSession?.community?.name ?? authSession?.user.community?.name ?? 'your community'}.
+      </Text>
 
       {isLoading ? (
         <View style={styles.statusCard}>
@@ -32,7 +36,7 @@ export function CommunityScreen() {
         data={classes}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.list}
-        ListEmptyComponent={<Text style={styles.empty}>No community classes available yet.</Text>}
+        ListEmptyComponent={!isLoading ? <Text style={styles.empty}>No community classes available yet.</Text> : null}
         renderItem={({ item }) => <ClassCard classItem={item} />}
       />
     </View>
