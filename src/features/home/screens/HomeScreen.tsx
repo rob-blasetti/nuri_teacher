@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import FastImage from 'react-native-fast-image';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { listClasses } from '../../../data/repositories/classRepository';
@@ -79,10 +80,10 @@ export function HomeScreen() {
           myClasses.map(classItem => (
             <View key={classItem.id} style={styles.carouselCard}>
               {classItem.imageUrl && !failedImages[classItem.id] ? (
-                <Image
-                  source={{ uri: classItem.imageUrl }}
+                <FastImage
+                  source={{ uri: classItem.imageUrl, priority: FastImage.priority.normal }}
                   style={styles.carouselImage}
-                  resizeMode="cover"
+                  resizeMode={FastImage.resizeMode.cover}
                   onError={() => {
                     setFailedImages(current => ({ ...current, [classItem.id]: true }));
                   }}

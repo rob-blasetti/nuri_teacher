@@ -1,5 +1,6 @@
 import React from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import FastImage from 'react-native-fast-image';
 import { colors } from '../../../shared/theme/colors';
 import { CommunityChildrenClass } from '../../../services/classesService';
 
@@ -23,7 +24,13 @@ export function ClassCard({ classItem }: ClassCardProps) {
 
   return (
     <View style={styles.card}>
-      {imageUrl ? <Image source={{ uri: imageUrl }} style={styles.image} resizeMode="cover" /> : null}
+      {imageUrl ? (
+        <FastImage
+          source={{ uri: imageUrl, priority: FastImage.priority.normal }}
+          style={styles.image}
+          resizeMode={FastImage.resizeMode.cover}
+        />
+      ) : null}
 
       {activityType ? <Text style={styles.eyebrow}>{activityType}</Text> : null}
       <Text style={styles.title}>{name}</Text>
