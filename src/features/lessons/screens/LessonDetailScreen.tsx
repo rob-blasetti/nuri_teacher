@@ -23,13 +23,13 @@ export function LessonDetailScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.hero}>
-        <Text style={styles.eyebrow}>{lesson.id}</Text>
-        <Text style={styles.title}>{lesson.subtitle}</Text>
-        <Text style={styles.summary}>Use these sections to guide the flow of the class for this lesson.</Text>
+        <Text style={styles.eyebrow}>{lesson.grade}</Text>
+        <Text style={styles.title}>{lesson.title}</Text>
+        <Text style={styles.summary}>{lesson.subtitle}</Text>
       </View>
 
       {lesson.sections.map(section => (
-        <View key={section.key} style={styles.sectionCard}>
+        <View key={`${lesson.id}-${section.key}`} style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>{section.title}</Text>
           <Text style={styles.sectionBody}>{section.body}</Text>
         </View>

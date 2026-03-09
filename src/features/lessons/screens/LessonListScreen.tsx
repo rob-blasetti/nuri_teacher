@@ -1,34 +1,38 @@
 import React from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LessonsStackParamList } from '../../../app/navigation/types';
-import { curriculumLessons } from '../data/lessonPlanContent';
+import { getCurriculumLessonsByGrade } from '../data/lessonPlanContent';
 import { colors } from '../../../shared/theme/colors';
 
 type Nav = NativeStackNavigationProp<LessonsStackParamList, 'LessonList'>;
+type RouteT = RouteProp<LessonsStackParamList, 'LessonList'>;
 
 export function LessonListScreen() {
   const navigation = useNavigation<Nav>();
+  const route = useRoute<RouteT>();
+  const grade = route.params?.grade ?? 'Grade 1';
+  const lessons = getCurriculumLessonsByGrade(grade);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Lesson Plans</Text>
+      <Text style={styles.title}>{grade} Lessons</Text>
       <Text style={styles.subtitle}>Select the lesson you are currently teaching to open its teaching guide.</Text>
 
       <FlatList
-        data={curriculumLessons}
+        data={lessons}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.list}
-        ListEmptyComponent={<Text style={styles.empty}>No lessons available.</Text>}
-        renderItem={({ item }) => (
-          <Pressable style={styles.card} onPress={() => navigation.navigate('LessonDetail', { lessonId: item.id })}>
+        ListEmptyComponent={<Text style={styles.empty}>No lessons available for this grade yet.</Text>}
+        renderItem={({ item, index }) => (
+          <Pressable style={styles.card} onPress={() => navigation.navigate('LessonDetail', { lessonId: item.id, grade })}>
             <View style={styles.lessonPill}>
-              <Text style={styles.lessonPillText}>{item.id}</Text>
+              <Text style={styles.lessonPillText}>{index + 1}</Text>
             </View>
             <View style={styles.cardBody}>
               <Text style={styles.cardTitle}>{item.title}</Text>
-              <Text style={styles.cardMeta}>{item.subtitle}</Text>
+              <Text style={styles.cardMeta}>{item.sections.map(section => section.title).slice(0, 3).join(' • ')}</Text>
             </View>
             <Text style={styles.chevron}>›</Text>
           </Pressable>
@@ -62,7 +66,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   lessonPillText: {
-    flex: 1,
     color: colors.white,
     fontWeight: '700',
     fontSize: 16,

@@ -22,7 +22,7 @@ export function GradesScreen() {
         keyExtractor={item => item}
         contentContainerStyle={styles.list}
         renderItem={({ item }) => (
-          <Pressable style={styles.row} onPress={() => navigation.navigate('LessonList')}>
+          <Pressable style={styles.row} onPress={() => navigation.navigate('LessonList', { grade: item })}>
             <Text style={styles.rowText}>{item}</Text>
             <Text style={styles.chevron}>›</Text>
           </Pressable>
