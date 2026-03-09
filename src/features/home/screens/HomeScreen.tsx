@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { listClasses } from '../../../data/repositories/classRepository';
@@ -7,14 +7,21 @@ import { listStudents } from '../../../data/repositories/studentRepository';
 import { getDb } from '../../../data/db/client';
 import { colors } from '../../../shared/theme/colors';
 import { useClasses } from '../../community/context/ClassesContext';
+import { useAuth } from '../../auth/context/AuthContext';
 
 export function HomeScreen() {
   const navigation = useNavigation<any>();
+  const { authSession } = useAuth();
   const { myClasses } = useClasses();
   const [nextClass, setNextClass] = useState<string>('No class set');
   const [studentCount, setStudentCount] = useState(0);
   const [needsReview, setNeedsReview] = useState(0);
   const [failedImages, setFailedImages] = useState<Record<string, true>>({});
+
+  const communityName = useMemo(
+    () => authSession?.community?.name ?? authSession?.user.community?.name ?? 'Community',
+    [authSession?.community?.name, authSession?.user.community?.name],
+  );
 
   const load = useCallback(async () => {
     const [classes, students] = await Promise.all([listClasses(), listStudents()]);
@@ -40,7 +47,8 @@ export function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Home</Text>
+      <Text style={styles.eyebrow}>{communityName}</Text>
+      <Text style={styles.title}>Children&apos;s Classes</Text>
 
       <View style={styles.card}>
         <Text style={styles.label}>Next class</Text>
@@ -107,9 +115,9 @@ export function HomeScreen() {
             <View style={styles.carouselCardBody}>
               <Text style={styles.carouselTitle}>No classes yet</Text>
               <View style={styles.carouselFooter}>
-                  <View style={styles.scheduleRow}>
-                    <Ionicons name="time-outline" size={16} color={colors.highlight} />
-                    <Text style={styles.scheduleText}>Schedule coming soon</Text>
+                <View style={styles.scheduleRow}>
+                  <Ionicons name="time-outline" size={16} color={colors.highlight} />
+                  <Text style={styles.scheduleText}>Schedule coming soon</Text>
                 </View>
                 <Text style={styles.nextSessionText}>Next Session: TBD</Text>
               </View>
@@ -117,15 +125,6 @@ export function HomeScreen() {
           </View>
         )}
       </ScrollView>
-
-      <View style={styles.actions}>
-        <Pressable style={styles.button} onPress={() => navigation.navigate('RuhiStack')}>
-          <Text style={styles.buttonText}>Study Ruhi</Text>
-        </Pressable>
-        <Pressable style={styles.button} onPress={() => navigation.navigate('LessonsStack')}>
-          <Text style={styles.buttonText}>Lesson Planner</Text>
-        </Pressable>
-      </View>
     </View>
   );
 }
@@ -165,7 +164,15 @@ function getNextSessionLabel(schedule?: string): string {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background, padding: 16 },
-  title: { fontSize: 24, fontWeight: '700', color: colors.textPrimary, marginBottom: 12 },
+  eyebrow: {
+    color: colors.highlight,
+    fontSize: 13,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  title: { fontSize: 28, fontWeight: '700', color: colors.textPrimary, marginBottom: 12 },
   row: { flexDirection: 'row', gap: 10 },
   half: { flex: 1 },
   card: {
@@ -176,7 +183,7 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 10,
   },
-  label: { color: colors.textSoft, marginBottom: 4 },
+  label: { color: colors.textOnWhite, opacity: 0.75, marginBottom: 6, fontWeight: '600' },
   value: { color: colors.textOnWhite, fontWeight: '700', fontSize: 16 },
   sectionHeader: { marginTop: 6, marginBottom: 10 },
   sectionTitle: { fontSize: 20, fontWeight: '700', color: colors.textPrimary },
@@ -245,7 +252,4 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
   },
-  actions: { marginTop: 8, gap: 8 },
-  button: { backgroundColor: colors.primary, borderRadius: 10, padding: 12, alignItems: 'center' },
-  buttonText: { color: colors.white, fontWeight: '600' },
 });
