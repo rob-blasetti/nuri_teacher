@@ -1,60 +1,42 @@
-import React, { useCallback, useState } from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
-import { listClasses } from '../../../data/repositories/classRepository';
-import { listStudents } from '../../../data/repositories/studentRepository';
-import { ClassEntity, StudentEntity } from '../../../types/entities';
+import React from 'react';
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useClasses } from '../context/ClassesContext';
 import { colors } from '../../../shared/theme/colors';
 import { ClassCard } from '../components/ClassCard';
-import { getTeachersForClass } from '../data/communityRoster';
-
-type CommunityClassCard = {
-  id: string;
-  classTitle: string;
-  teachers: string[];
-  students: string[];
-};
 
 export function CommunityScreen() {
-  const [classCards, setClassCards] = useState<CommunityClassCard[]>([]);
-
-  const load = useCallback(async () => {
-    const [classes, students] = await Promise.all([listClasses(), listStudents()]);
-    const cards = buildCommunityClassCards(classes, students);
-    setClassCards(cards);
-  }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      load();
-    }, [load]),
-  );
+  const { classes, isLoading, error, refreshClasses } = useClasses();
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Community</Text>
-      <Text style={styles.subtitle}>See every class in the community together with its teachers and students.</Text>
+      <Text style={styles.subtitle}>See every class in the community together with its facilitators and participants.</Text>
+
+      {isLoading ? (
+        <View style={styles.statusCard}>
+          <ActivityIndicator color={colors.primary} />
+          <Text style={styles.statusText}>Loading classes...</Text>
+        </View>
+      ) : null}
+
+      {error ? (
+        <View style={styles.statusCard}>
+          <Text style={styles.error}>{error}</Text>
+          <Pressable style={styles.retryButton} onPress={() => refreshClasses().catch(() => undefined)}>
+            <Text style={styles.retryText}>Try Again</Text>
+          </Pressable>
+        </View>
+      ) : null}
 
       <FlatList
-        data={classCards}
+        data={classes}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.list}
         ListEmptyComponent={<Text style={styles.empty}>No community classes available yet.</Text>}
-        renderItem={({ item }) => (
-          <ClassCard classTitle={item.classTitle} teachers={item.teachers} students={item.students} />
-        )}
+        renderItem={({ item }) => <ClassCard classItem={item} />}
       />
     </View>
   );
-}
-
-function buildCommunityClassCards(classes: ClassEntity[], students: StudentEntity[]): CommunityClassCard[] {
-  return classes.map(classItem => ({
-    id: classItem.id,
-    classTitle: classItem.name,
-    teachers: getTeachersForClass(classItem.id),
-    students: students.filter(student => student.classId === classItem.id && student.active).map(student => student.name),
-  }));
 }
 
 const styles = StyleSheet.create({
@@ -78,8 +60,35 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingBottom: 24,
   },
+  statusCard: {
+    backgroundColor: colors.surfaceSoft,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 12,
+    alignItems: 'center',
+    gap: 10,
+  },
+  statusText: {
+    color: colors.textPrimary,
+  },
   empty: {
     color: colors.textMuted,
     marginTop: 10,
+  },
+  error: {
+    color: colors.danger,
+    textAlign: 'center',
+  },
+  retryButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  retryText: {
+    color: colors.white,
+    fontWeight: '700',
   },
 });

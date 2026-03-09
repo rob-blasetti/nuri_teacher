@@ -1,23 +1,23 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { listClasses } from '../../../data/repositories/classRepository';
 import { listStudents } from '../../../data/repositories/studentRepository';
 import { getDb } from '../../../data/db/client';
-import { ClassEntity } from '../../../types/entities';
 import { colors } from '../../../shared/theme/colors';
+import { useClasses } from '../../community/context/ClassesContext';
 
 export function HomeScreen() {
   const navigation = useNavigation<any>();
+  const { myClasses } = useClasses();
   const [nextClass, setNextClass] = useState<string>('No class set');
-  const [classes, setClasses] = useState<ClassEntity[]>([]);
   const [studentCount, setStudentCount] = useState(0);
   const [needsReview, setNeedsReview] = useState(0);
+  const [failedImages, setFailedImages] = useState<Record<string, true>>({});
 
   const load = useCallback(async () => {
     const [classes, students] = await Promise.all([listClasses(), listStudents()]);
-    setClasses(classes);
     setStudentCount(students.length);
     setNextClass(classes[0] ? `${classes[0].name} • ${classes[0].schedule ?? 'No schedule'}` : 'No class set');
 
@@ -67,12 +67,23 @@ export function HomeScreen() {
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.carouselContent}>
-        {classes.length > 0 ? (
-          classes.map(classItem => (
+        {myClasses.length > 0 ? (
+          myClasses.map(classItem => (
             <View key={classItem.id} style={styles.carouselCard}>
-              <View style={styles.carouselImagePlaceholder}>
-                <Text style={styles.carouselImageText}>{classItem.name}</Text>
-              </View>
+              {classItem.imageUrl && !failedImages[classItem.id] ? (
+                <Image
+                  source={{ uri: classItem.imageUrl }}
+                  style={styles.carouselImage}
+                  resizeMode="cover"
+                  onError={() => {
+                    setFailedImages(current => ({ ...current, [classItem.id]: true }));
+                  }}
+                />
+              ) : (
+                <View style={styles.carouselImagePlaceholder}>
+                  <Text style={styles.carouselImageText}>{classItem.activityType ?? classItem.name}</Text>
+                </View>
+              )}
               <View style={styles.carouselCardBody}>
                 <Text style={styles.carouselTitle}>{classItem.name}</Text>
                 <View style={styles.carouselFooter}>
@@ -80,6 +91,9 @@ export function HomeScreen() {
                     <Ionicons name="time-outline" size={16} color={colors.highlight} />
                     <Text style={styles.scheduleText}>{classItem.schedule ?? 'Schedule coming soon'}</Text>
                   </View>
+                  <Text style={styles.roleText}>
+                    Facilitators: {classItem.facilitators.join(', ') || 'Unassigned'}
+                  </Text>
                   <Text style={styles.nextSessionText}>Next Session: {getNextSessionLabel(classItem.schedule)}</Text>
                 </View>
               </View>
@@ -93,9 +107,9 @@ export function HomeScreen() {
             <View style={styles.carouselCardBody}>
               <Text style={styles.carouselTitle}>No classes yet</Text>
               <View style={styles.carouselFooter}>
-                <View style={styles.scheduleRow}>
-                  <Ionicons name="time-outline" size={16} color={colors.highlight} />
-                  <Text style={styles.scheduleText}>Schedule coming soon</Text>
+                  <View style={styles.scheduleRow}>
+                    <Ionicons name="time-outline" size={16} color={colors.highlight} />
+                    <Text style={styles.scheduleText}>Schedule coming soon</Text>
                 </View>
                 <Text style={styles.nextSessionText}>Next Session: TBD</Text>
               </View>
@@ -183,6 +197,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 16,
   },
+  carouselImage: {
+    width: '100%',
+    height: 120,
+    backgroundColor: colors.surfaceSoft,
+  },
   carouselImageText: {
     color: colors.white,
     fontSize: 18,
@@ -204,6 +223,11 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.surfaceBorder,
     gap: 10,
+  },
+  roleText: {
+    color: colors.textSubtle,
+    fontSize: 13,
+    lineHeight: 18,
   },
   scheduleRow: {
     flexDirection: 'row',
