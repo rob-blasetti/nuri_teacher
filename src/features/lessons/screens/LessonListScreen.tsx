@@ -3,7 +3,7 @@ import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LessonsStackParamList } from '../../../app/navigation/types';
-import { getCurriculumLessonsByGrade } from '../data/lessonPlanContent';
+import { getCurriculumLessonsByGrade, getCurriculumLessonsByGradeAndSet } from '../data/lessonPlanContent';
 import { colors } from '../../../shared/theme/colors';
 
 type Nav = NativeStackNavigationProp<LessonsStackParamList, 'LessonList'>;
@@ -13,22 +13,23 @@ export function LessonListScreen() {
   const navigation = useNavigation<Nav>();
   const route = useRoute<RouteT>();
   const grade = route.params?.grade ?? 'Grade 1';
-  const lessons = getCurriculumLessonsByGrade(grade);
+  const set = route.params?.set;
+  const lessons = set ? getCurriculumLessonsByGradeAndSet(grade, set) : getCurriculumLessonsByGrade(grade);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{grade} Lessons</Text>
+      <Text style={styles.title}>{set ? `${grade} • ${set}` : `${grade} Lessons`}</Text>
       <Text style={styles.subtitle}>Select the lesson you are currently teaching to open its teaching guide.</Text>
 
       <FlatList
         data={lessons}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.list}
-        ListEmptyComponent={<Text style={styles.empty}>No lessons available for this grade yet.</Text>}
+        ListEmptyComponent={<Text style={styles.empty}>No lessons available for this selection yet.</Text>}
         renderItem={({ item, index }) => (
-          <Pressable style={styles.card} onPress={() => navigation.navigate('LessonDetail', { lessonId: item.id, grade })}>
+          <Pressable style={styles.card} onPress={() => navigation.navigate('LessonDetail', { lessonId: item.id, grade, set })}>
             <View style={styles.lessonPill}>
-              <Text style={styles.lessonPillText}>{index + 1}</Text>
+              <Text style={styles.lessonPillText}>{item.lessonNumber ?? index + 1}</Text>
             </View>
             <View style={styles.cardBody}>
               <Text style={styles.cardTitle}>{item.title}</Text>
@@ -58,17 +59,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   lessonPill: {
-    width: 56,
+    minWidth: 56,
     height: 56,
     borderRadius: 14,
     backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 8,
   },
   lessonPillText: {
     color: colors.white,
     fontWeight: '700',
-    fontSize: 16,
+    fontSize: 14,
     textAlign: 'center',
   },
   cardBody: {

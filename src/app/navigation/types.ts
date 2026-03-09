@@ -20,8 +20,9 @@ export type StudentsStackParamList = {
 
 export type LessonsStackParamList = {
   Grades: undefined;
-  LessonList: { grade: string };
-  LessonDetail: { lessonId: string; grade?: string };
+  LessonSets: { grade: string };
+  LessonList: { grade: string; set?: string };
+  LessonDetail: { lessonId: string; grade?: string; set?: string };
 };
 
 export type RuhiStackParamList = {

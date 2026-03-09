@@ -17,6 +17,7 @@ import { StudentListScreen } from '../../features/students/screens/StudentListSc
 import { StudentDetailScreen } from '../../features/students/screens/StudentDetailScreen';
 import { LessonEditorScreen } from '../../features/lessons/screens/LessonEditorScreen';
 import { GradesScreen } from '../../features/lessons/screens/GradesScreen';
+import { LessonSetsScreen } from '../../features/lessons/screens/LessonSetsScreen';
 import { LessonListScreen } from '../../features/lessons/screens/LessonListScreen';
 import { LessonDetailScreen } from '../../features/lessons/screens/LessonDetailScreen';
 import { InClassModeScreen } from '../../features/classMode/screens/InClassModeScreen';
@@ -56,6 +57,7 @@ function LessonsNavigator() {
       }}
     >
       <LessonsStack.Screen name="Grades" component={GradesScreen} options={{ title: 'Grades' }} />
+      <LessonsStack.Screen name="LessonSets" component={LessonSetsScreen} options={{ title: 'Sets' }} />
       <LessonsStack.Screen name="LessonList" component={LessonListScreen} options={{ title: 'Lesson Plans' }} />
       <LessonsStack.Screen name="LessonDetail" component={LessonDetailScreen} options={{ title: 'Lesson Detail' }} />
     </LessonsStack.Navigator>

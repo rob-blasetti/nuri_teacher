@@ -23,7 +23,7 @@ export function LessonDetailScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.hero}>
-        <Text style={styles.eyebrow}>{lesson.grade}</Text>
+        <Text style={styles.eyebrow}>{[lesson.grade, lesson.set].filter(Boolean).join(' • ')}</Text>
         <Text style={styles.title}>{lesson.title}</Text>
         <Text style={styles.summary}>{lesson.subtitle}</Text>
       </View>
