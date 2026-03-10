@@ -5,6 +5,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { RootStackParamList } from '../../../app/navigation/types';
 import { colors } from '../../../shared/theme/colors';
 import { useClasses } from '../../community/context/ClassesContext';
+import { getCurriculumLessonById, getCurriculumLessonsByGrade } from '../../lessons/data/lessonPlanContent';
 
 type RouteT = RouteProp<RootStackParamList, 'InClassMode'>;
 type AttendanceState = 'present' | 'absent' | 'unmarked';
@@ -25,6 +26,24 @@ export function InClassModeScreen() {
   const [sessionNote, setSessionNote] = useState('');
   const [attendanceByStudentId, setAttendanceByStudentId] = useState<Record<string, AttendanceState>>({});
   const [isFinished, setIsFinished] = useState(false);
+
+  const lesson = useMemo(() => {
+    if (route.params.lessonId) {
+      return getCurriculumLessonById(route.params.lessonId);
+    }
+
+    if (!classItem) {
+      return undefined;
+    }
+
+    const gradeKey = classItem.ageGroup?.toLowerCase().includes('2')
+      ? 'Grade 2'
+      : classItem.ageGroup?.toLowerCase().includes('preschool')
+        ? 'Preschool'
+        : 'Grade 1';
+
+    return getCurriculumLessonsByGrade(gradeKey)[0];
+  }, [classItem, route.params.lessonId]);
 
   const roster = useMemo<RosterItem[]>(() => {
     if (!classItem) {
@@ -148,6 +167,27 @@ export function InClassModeScreen() {
           <Text style={styles.statValue}>{absentCount}</Text>
         </View>
       </View>
+
+      {lesson ? (
+        <View style={styles.sectionCard}>
+          <View style={styles.lessonHeaderRow}>
+            <View style={styles.lessonHeaderCopy}>
+              <Text style={styles.sectionTitle}>Current Lesson</Text>
+              <Text style={styles.sectionSubtitle}>{lesson.title} • {lesson.subtitle}</Text>
+            </View>
+            <Pressable style={styles.lessonButton} onPress={() => navigation.navigate('Tabs', { screen: 'LessonsStack' } as any)}>
+              <Text style={styles.lessonButtonText}>Open Lessons</Text>
+            </Pressable>
+          </View>
+
+          <View style={styles.lessonPreviewCard}>
+            <Text style={styles.lessonPreviewTitle}>{lesson.sections[0]?.title ?? 'Lesson overview'}</Text>
+            <Text style={styles.lessonPreviewBody} numberOfLines={6}>
+              {lesson.sections[0]?.body ?? 'Lesson preview coming soon.'}
+            </Text>
+          </View>
+        </View>
+      ) : null}
 
       <View style={styles.sectionCard}>
         <Text style={styles.sectionTitle}>Class Roster</Text>
@@ -309,6 +349,43 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.surfaceBorder,
     padding: 16,
+  },
+  lessonHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  lessonHeaderCopy: {
+    flex: 1,
+  },
+  lessonButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  lessonButtonText: {
+    color: colors.white,
+    fontWeight: '700',
+  },
+  lessonPreviewCard: {
+    marginTop: 4,
+    backgroundColor: colors.white,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    padding: 14,
+  },
+  lessonPreviewTitle: {
+    color: colors.textOnWhite,
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+  lessonPreviewBody: {
+    color: colors.textOnWhite,
+    lineHeight: 22,
   },
   sectionTitle: {
     color: colors.textPrimary,
