@@ -109,6 +109,11 @@ export function HomeScreen() {
                     Facilitators: {classItem.facilitators.join(', ') || 'Unassigned'}
                   </Text>
                   <Text style={styles.nextSessionText}>Next Session: {getNextSessionLabel(classItem.schedule)}</Text>
+                  <Pressable
+                    style={styles.startClassButton}
+                    onPress={() => navigation.navigate('InClassMode', { classId: classItem.id })}>
+                    <Text style={styles.startClassButtonText}>Start Class</Text>
+                  </Pressable>
                 </View>
               </View>
             </View>
@@ -275,5 +280,16 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     fontSize: 13,
     fontWeight: '600',
+  },
+  startClassButton: {
+    marginTop: 4,
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  startClassButtonText: {
+    color: colors.white,
+    fontWeight: '700',
   },
 });
