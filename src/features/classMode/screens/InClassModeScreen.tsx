@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { RouteProp, useRoute } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { RootStackParamList } from '../../../app/navigation/types';
 import { colors } from '../../../shared/theme/colors';
@@ -15,6 +15,7 @@ type RosterItem = {
 };
 
 export function InClassModeScreen() {
+  const navigation = useNavigation<any>();
   const route = useRoute<RouteT>();
   const { myClasses } = useClasses();
   const classItem = useMemo(
@@ -23,6 +24,7 @@ export function InClassModeScreen() {
   );
   const [sessionNote, setSessionNote] = useState('');
   const [attendanceByStudentId, setAttendanceByStudentId] = useState<Record<string, AttendanceState>>({});
+  const [isFinished, setIsFinished] = useState(false);
 
   const roster = useMemo<RosterItem[]>(() => {
     if (!classItem) {
@@ -38,6 +40,7 @@ export function InClassModeScreen() {
 
   const presentCount = roster.filter(student => student.attendance === 'present').length;
   const absentCount = roster.filter(student => student.attendance === 'absent').length;
+  const unmarkedCount = roster.filter(student => student.attendance === 'unmarked').length;
 
   const setAttendance = (studentId: string, attendance: AttendanceState) => {
     setAttendanceByStudentId(current => ({
@@ -46,12 +49,71 @@ export function InClassModeScreen() {
     }));
   };
 
+  const onFinishClass = () => {
+    setIsFinished(true);
+  };
+
+  const onCloseSummary = () => {
+    navigation.goBack();
+  };
+
   if (!classItem) {
     return (
       <View style={styles.emptyContainer}>
         <Text style={styles.emptyTitle}>Class not found</Text>
         <Text style={styles.emptyText}>Go back and launch In-Class Mode from one of your live classes.</Text>
       </View>
+    );
+  }
+
+  if (isFinished) {
+    return (
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        <View style={styles.summaryHero}>
+          <Ionicons name="checkmark-circle" size={44} color={colors.success} />
+          <Text style={styles.summaryTitle}>Class finished</Text>
+          <Text style={styles.summaryText}>{classItem.name} has been wrapped up for now. This summary is local-only for the moment.</Text>
+        </View>
+
+        <View style={styles.statsRow}>
+          <View style={styles.statCard}>
+            <Text style={styles.statLabel}>Present</Text>
+            <Text style={styles.statValue}>{presentCount}</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statLabel}>Absent</Text>
+            <Text style={styles.statValue}>{absentCount}</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statLabel}>Unmarked</Text>
+            <Text style={styles.statValue}>{unmarkedCount}</Text>
+          </View>
+        </View>
+
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionTitle}>Attendance Summary</Text>
+          <Text style={styles.sectionSubtitle}>Here’s how the roster ended for this session.</Text>
+          {roster.length > 0 ? (
+            roster.map(student => (
+              <View key={student.id} style={styles.summaryRow}>
+                <Text style={styles.summaryStudentName}>{student.name}</Text>
+                <Text style={styles.summaryStudentStatus}>{student.attendance}</Text>
+              </View>
+            ))
+          ) : (
+            <Text style={styles.emptyRosterText}>No participants were available for this class.</Text>
+          )}
+        </View>
+
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionTitle}>Session Note</Text>
+          <Text style={styles.sectionSubtitle}>{sessionNote.trim() || 'No session note was recorded.'}</Text>
+        </View>
+
+        <Pressable style={styles.finishButton} onPress={onCloseSummary}>
+          <Text style={styles.finishButtonText}>Done</Text>
+        </Pressable>
+      </ScrollView>
     );
   }
 
@@ -139,6 +201,10 @@ export function InClassModeScreen() {
           placeholderTextColor={colors.textMuted}
         />
       </View>
+
+      <Pressable style={styles.finishButton} onPress={onFinishClass}>
+        <Text style={styles.finishButtonText}>Finish Class</Text>
+      </Pressable>
     </ScrollView>
   );
 }
@@ -160,6 +226,15 @@ const styles = StyleSheet.create({
     borderColor: colors.surfaceBorder,
     padding: 18,
   },
+  summaryHero: {
+    backgroundColor: colors.surfaceSoft,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    padding: 22,
+    alignItems: 'center',
+    gap: 8,
+  },
   eyebrow: {
     color: colors.highlight,
     textTransform: 'uppercase',
@@ -175,6 +250,16 @@ const styles = StyleSheet.create({
   summary: {
     color: colors.textMuted,
     marginTop: 8,
+  },
+  summaryTitle: {
+    color: colors.textPrimary,
+    fontSize: 26,
+    fontWeight: '800',
+  },
+  summaryText: {
+    color: colors.textMuted,
+    textAlign: 'center',
+    lineHeight: 21,
   },
   metaRow: {
     flexDirection: 'row',
@@ -295,6 +380,41 @@ const styles = StyleSheet.create({
     padding: 14,
     color: colors.textOnWhite,
     textAlignVertical: 'top',
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    marginBottom: 8,
+  },
+  summaryStudentName: {
+    color: colors.textOnWhite,
+    fontWeight: '700',
+    flex: 1,
+    marginRight: 12,
+  },
+  summaryStudentStatus: {
+    color: colors.primaryStrong,
+    fontWeight: '700',
+    textTransform: 'capitalize',
+  },
+  finishButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  finishButtonText: {
+    color: colors.white,
+    fontWeight: '800',
+    fontSize: 16,
   },
   emptyContainer: {
     flex: 1,
