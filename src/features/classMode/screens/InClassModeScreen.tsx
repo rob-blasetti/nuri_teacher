@@ -9,11 +9,16 @@ import { getCurriculumLessonById, getCurriculumLessonsByGrade } from '../../less
 
 type RouteT = RouteProp<RootStackParamList, 'InClassMode'>;
 type AttendanceState = 'present' | 'absent' | 'unmarked';
+type ProgressState = 'learning' | 'partial' | 'confident' | 'needs-help';
 type RosterItem = {
   id: string;
   name: string;
   attendance: AttendanceState;
+  progress: ProgressState;
+  note: string;
 };
+
+const progressOptions: ProgressState[] = ['learning', 'partial', 'confident', 'needs-help'];
 
 export function InClassModeScreen() {
   const navigation = useNavigation<any>();
@@ -25,6 +30,8 @@ export function InClassModeScreen() {
   );
   const [sessionNote, setSessionNote] = useState('');
   const [attendanceByStudentId, setAttendanceByStudentId] = useState<Record<string, AttendanceState>>({});
+  const [progressByStudentId, setProgressByStudentId] = useState<Record<string, ProgressState>>({});
+  const [notesByStudentId, setNotesByStudentId] = useState<Record<string, string>>({});
   const [isFinished, setIsFinished] = useState(false);
 
   const lesson = useMemo(() => {
@@ -54,8 +61,10 @@ export function InClassModeScreen() {
       id: studentId,
       name: classItem.participants[index] ?? 'Unnamed student',
       attendance: attendanceByStudentId[studentId] ?? 'unmarked',
+      progress: progressByStudentId[studentId] ?? 'learning',
+      note: notesByStudentId[studentId] ?? '',
     }));
-  }, [attendanceByStudentId, classItem]);
+  }, [attendanceByStudentId, classItem, notesByStudentId, progressByStudentId]);
 
   const presentCount = roster.filter(student => student.attendance === 'present').length;
   const absentCount = roster.filter(student => student.attendance === 'absent').length;
@@ -65,6 +74,20 @@ export function InClassModeScreen() {
     setAttendanceByStudentId(current => ({
       ...current,
       [studentId]: current[studentId] === attendance ? 'unmarked' : attendance,
+    }));
+  };
+
+  const setProgress = (studentId: string, progress: ProgressState) => {
+    setProgressByStudentId(current => ({
+      ...current,
+      [studentId]: current[studentId] === progress ? 'learning' : progress,
+    }));
+  };
+
+  const setStudentNote = (studentId: string, note: string) => {
+    setNotesByStudentId(current => ({
+      ...current,
+      [studentId]: note,
     }));
   };
 
@@ -114,9 +137,13 @@ export function InClassModeScreen() {
           <Text style={styles.sectionSubtitle}>Here’s how the roster ended for this session.</Text>
           {roster.length > 0 ? (
             roster.map(student => (
-              <View key={student.id} style={styles.summaryRow}>
-                <Text style={styles.summaryStudentName}>{student.name}</Text>
-                <Text style={styles.summaryStudentStatus}>{student.attendance}</Text>
+              <View key={student.id} style={styles.summaryCard}>
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryStudentName}>{student.name}</Text>
+                  <Text style={styles.summaryStudentStatus}>{student.attendance}</Text>
+                </View>
+                <Text style={styles.summaryProgress}>Progress: {student.progress}</Text>
+                {student.note.trim() ? <Text style={styles.summaryNote}>Note: {student.note}</Text> : null}
               </View>
             ))
           ) : (
@@ -191,7 +218,7 @@ export function InClassModeScreen() {
 
       <View style={styles.sectionCard}>
         <Text style={styles.sectionTitle}>Class Roster</Text>
-        <Text style={styles.sectionSubtitle}>Tap Present or Absent for each student. Tap again to clear.</Text>
+        <Text style={styles.sectionSubtitle}>Mark attendance, capture quick progress, and jot short notes as you teach.</Text>
 
         {roster.length > 0 ? (
           roster.map(student => (
@@ -222,6 +249,27 @@ export function InClassModeScreen() {
                   </Pressable>
                 </View>
               </View>
+
+              <View style={styles.progressRow}>
+                {progressOptions.map(option => (
+                  <Pressable
+                    key={`${student.id}-${option}`}
+                    style={[styles.progressChip, student.progress === option ? styles.progressChipActive : null]}
+                    onPress={() => setProgress(student.id, option)}>
+                    <Text style={[styles.progressChipText, student.progress === option ? styles.progressChipTextActive : null]}>
+                      {formatProgressLabel(option)}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+
+              <TextInput
+                style={styles.studentNoteInput}
+                value={student.note}
+                onChangeText={value => setStudentNote(student.id, value)}
+                placeholder="Quick note for this student"
+                placeholderTextColor={colors.textMuted}
+              />
             </View>
           ))
         ) : (
@@ -247,6 +295,19 @@ export function InClassModeScreen() {
       </Pressable>
     </ScrollView>
   );
+}
+
+function formatProgressLabel(value: ProgressState): string {
+  switch (value) {
+    case 'needs-help':
+      return 'Needs Help';
+    case 'partial':
+      return 'Partial';
+    case 'confident':
+      return 'Confident';
+    default:
+      return 'Learning';
+  }
 }
 
 const styles = StyleSheet.create({
@@ -445,6 +506,42 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontWeight: '700',
   },
+  progressRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 12,
+  },
+  progressChip: {
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorderSoft,
+    backgroundColor: colors.primarySoft,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  progressChipActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  progressChipText: {
+    color: colors.primaryStrong,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  progressChipTextActive: {
+    color: colors.white,
+  },
+  studentNoteInput: {
+    marginTop: 12,
+    borderRadius: 12,
+    backgroundColor: colors.primarySoft,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    color: colors.textOnWhite,
+  },
   emptyRosterText: {
     color: colors.textMuted,
   },
@@ -458,17 +555,18 @@ const styles = StyleSheet.create({
     color: colors.textOnWhite,
     textAlignVertical: 'top',
   },
+  summaryCard: {
+    backgroundColor: colors.white,
+    borderRadius: 12,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    marginBottom: 8,
+  },
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderWidth: 1,
-    borderColor: colors.surfaceBorder,
-    marginBottom: 8,
   },
   summaryStudentName: {
     color: colors.textOnWhite,
@@ -480,6 +578,17 @@ const styles = StyleSheet.create({
     color: colors.primaryStrong,
     fontWeight: '700',
     textTransform: 'capitalize',
+  },
+  summaryProgress: {
+    color: colors.textOnWhite,
+    marginTop: 8,
+    fontWeight: '600',
+    textTransform: 'capitalize',
+  },
+  summaryNote: {
+    color: colors.textSoft,
+    marginTop: 6,
+    lineHeight: 20,
   },
   finishButton: {
     backgroundColor: colors.primary,
