@@ -13,13 +13,13 @@ export function CommunityScreen() {
     <View style={styles.container}>
       <Text style={styles.title}>Community</Text>
       <Text style={styles.subtitle}>
-        Children&apos;s Classes from {authSession?.community?.name ?? authSession?.user.community?.name ?? 'your community'}.
+        Children&apos;s classes from {authSession?.community?.name ?? authSession?.user.community?.name ?? 'your community'}.
       </Text>
 
       {isLoading ? (
         <View style={styles.statusCard}>
           <ActivityIndicator color={colors.primary} />
-          <Text style={styles.statusText}>Loading classes...</Text>
+          <Text style={styles.statusText}>Loading community classes...</Text>
         </View>
       ) : null}
 
@@ -36,7 +36,14 @@ export function CommunityScreen() {
         data={classes}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.list}
-        ListEmptyComponent={!isLoading ? <Text style={styles.empty}>No community classes available yet.</Text> : null}
+        ListEmptyComponent={
+          !isLoading ? (
+            <View style={styles.statusCard}>
+              <Text style={styles.statusTitle}>No community classes yet</Text>
+              <Text style={styles.statusText}>Once classes are linked to your community, they’ll show up here.</Text>
+            </View>
+          ) : null
+        }
         renderItem={({ item }) => <ClassCard classItem={item} />}
       />
     </View>
@@ -74,12 +81,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
   },
-  statusText: {
+  statusTitle: {
     color: colors.textPrimary,
+    fontWeight: '700',
+    fontSize: 18,
+    textAlign: 'center',
   },
-  empty: {
+  statusText: {
     color: colors.textMuted,
-    marginTop: 10,
+    textAlign: 'center',
+    lineHeight: 20,
   },
   error: {
     color: colors.danger,

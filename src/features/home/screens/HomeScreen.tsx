@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import FastImage from 'react-native-fast-image';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import FastImage from 'react-native-fast-image';
 import { listClasses } from '../../../data/repositories/classRepository';
 import { listStudents } from '../../../data/repositories/studentRepository';
 import { getDb } from '../../../data/db/client';
@@ -18,6 +18,7 @@ export function HomeScreen() {
   const [studentCount, setStudentCount] = useState(0);
   const [needsReview, setNeedsReview] = useState(0);
   const [failedImages, setFailedImages] = useState<Record<string, true>>({});
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
 
   const communityName = useMemo(
     () => authSession?.community?.name ?? authSession?.user.community?.name ?? 'Community',
@@ -25,6 +26,7 @@ export function HomeScreen() {
   );
 
   const load = useCallback(async () => {
+    setIsLoadingStats(true);
     const [classes, students] = await Promise.all([listClasses(), listStudents()]);
     setStudentCount(students.length);
     setNextClass(classes[0] ? `${classes[0].name} • ${classes[0].schedule ?? 'No schedule'}` : 'No class set');
@@ -34,6 +36,7 @@ export function HomeScreen() {
       "SELECT COUNT(*) as count FROM progress_records WHERE status != 'confident'",
     );
     setNeedsReview((result.rows.item(0).count as number) || 0);
+    setIsLoadingStats(false);
   }, []);
 
   useEffect(() => {
@@ -50,6 +53,13 @@ export function HomeScreen() {
     <View style={styles.container}>
       <Text style={styles.eyebrow}>{communityName}</Text>
       <Text style={styles.title}>Children&apos;s Classes</Text>
+
+      {isLoadingStats ? (
+        <View style={styles.statusCard}>
+          <ActivityIndicator color={colors.primary} />
+          <Text style={styles.statusText}>Loading class overview...</Text>
+        </View>
+      ) : null}
 
       <View style={styles.card}>
         <Text style={styles.label}>Next class</Text>
@@ -70,17 +80,14 @@ export function HomeScreen() {
       <View style={styles.sectionHeaderRow}>
         <View style={styles.sectionHeaderCopy}>
           <Text style={styles.sectionTitle}>My Classes</Text>
-          <Text style={styles.sectionSubtitle}>Swipe through your classes.</Text>
+          <Text style={styles.sectionSubtitle}>Swipe through your live class roster.</Text>
         </View>
         <Pressable style={styles.createButton} onPress={() => navigation.navigate('CreateClass')}>
           <Text style={styles.createButtonText}>Create Class</Text>
         </Pressable>
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.carouselContent}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carouselContent}>
         {myClasses.length > 0 ? (
           myClasses.map(classItem => (
             <View key={classItem.id} style={styles.carouselCard}>
@@ -119,20 +126,9 @@ export function HomeScreen() {
             </View>
           ))
         ) : (
-          <View style={styles.carouselCard}>
-            <View style={styles.carouselImagePlaceholder}>
-              <Text style={styles.carouselImageText}>My Classes</Text>
-            </View>
-            <View style={styles.carouselCardBody}>
-              <Text style={styles.carouselTitle}>No classes yet</Text>
-              <View style={styles.carouselFooter}>
-                <View style={styles.scheduleRow}>
-                  <Ionicons name="time-outline" size={16} color={colors.highlight} />
-                  <Text style={styles.scheduleText}>Schedule coming soon</Text>
-                </View>
-                <Text style={styles.nextSessionText}>Next Session: TBD</Text>
-              </View>
-            </View>
+          <View style={styles.statusCardWide}>
+            <Text style={styles.statusTitle}>No classes yet</Text>
+            <Text style={styles.statusText}>Create your first children&apos;s class to start building your teaching flow.</Text>
           </View>
         )}
       </ScrollView>
@@ -216,6 +212,36 @@ const styles = StyleSheet.create({
   createButtonText: {
     color: colors.white,
     fontWeight: '700',
+  },
+  statusCard: {
+    backgroundColor: colors.surfaceSoft,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 12,
+    alignItems: 'center',
+    gap: 10,
+  },
+  statusCardWide: {
+    width: 260,
+    backgroundColor: colors.surfaceSoft,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    borderRadius: 18,
+    padding: 16,
+    justifyContent: 'center',
+  },
+  statusTitle: {
+    color: colors.textPrimary,
+    fontWeight: '700',
+    fontSize: 18,
+    marginBottom: 6,
+  },
+  statusText: {
+    color: colors.textMuted,
+    textAlign: 'center',
+    lineHeight: 20,
   },
   carouselContent: { paddingRight: 16, gap: 12 },
   carouselCard: {

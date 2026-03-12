@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { StudentsStackParamList } from '../../../app/navigation/types';
@@ -52,9 +52,12 @@ export function StudentListScreen() {
   const navigation = useNavigation<NavProp>();
   const { myClasses } = useClasses();
   const [students, setStudents] = useState<LiveStudentItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const load = useCallback(() => {
+    setIsLoading(true);
     setStudents(buildStudentsFromClasses(myClasses));
+    setIsLoading(false);
   }, [myClasses]);
 
   useFocusEffect(
@@ -68,11 +71,25 @@ export function StudentListScreen() {
       <Text style={styles.title}>Students</Text>
       <Text style={styles.sub}>Students pulled from the participants in your live classes.</Text>
 
+      {isLoading ? (
+        <View style={styles.statusCard}>
+          <ActivityIndicator color={colors.primary} />
+          <Text style={styles.statusText}>Loading students...</Text>
+        </View>
+      ) : null}
+
       <FlatList
         data={students}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.list}
-        ListEmptyComponent={<Text style={styles.empty}>No students found in your classes yet.</Text>}
+        ListEmptyComponent={
+          !isLoading ? (
+            <View style={styles.statusCard}>
+              <Text style={styles.statusTitle}>No students yet</Text>
+              <Text style={styles.statusText}>Students will appear here once they are part of your live class roster.</Text>
+            </View>
+          ) : null
+        }
         renderItem={({ item }) => (
           <Pressable
             style={styles.card}
@@ -105,9 +122,26 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   list: { gap: 10 },
-  empty: {
+  statusCard: {
+    backgroundColor: colors.surfaceSoft,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 12,
+    alignItems: 'center',
+    gap: 10,
+  },
+  statusTitle: {
+    color: colors.textPrimary,
+    fontWeight: '700',
+    fontSize: 18,
+    textAlign: 'center',
+  },
+  statusText: {
     color: colors.textMuted,
-    marginTop: 10,
+    textAlign: 'center',
+    lineHeight: 20,
   },
   card: {
     backgroundColor: colors.white,
