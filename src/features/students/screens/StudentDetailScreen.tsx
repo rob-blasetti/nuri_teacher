@@ -5,6 +5,8 @@ import { StudentsStackParamList } from '../../../app/navigation/types';
 import { colors } from '../../../shared/theme/colors';
 import { useClasses } from '../../community/context/ClassesContext';
 import { listAttendanceBySession, listSessionsByClass } from '../../../data/repositories/attendanceRepository';
+import { useAuth } from '../../auth/context/AuthContext';
+import { getStudentDetail } from '../../../services/studentService';
 
 type RouteT = RouteProp<StudentsStackParamList, 'StudentDetail'>;
 
@@ -19,11 +21,20 @@ type StudentHistoryItem = {
 
 export function StudentDetailScreen() {
   const route = useRoute<RouteT>();
+  const { authSession } = useAuth();
   const { myClasses } = useClasses();
   const [history, setHistory] = useState<StudentHistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [remoteStudent, setRemoteStudent] = useState<{
+    id: string;
+    name: string;
+    firstName?: string;
+    lastName?: string;
+    profilePicture?: string;
+    classes: Array<{ id: string; name: string }>;
+  }>();
 
-  const student = useMemo(() => {
+  const localStudent = useMemo(() => {
     const matches = myClasses
       .filter(classItem => classItem.participantIds.includes(route.params.studentId))
       .map(classItem => ({
@@ -43,6 +54,44 @@ export function StudentDetailScreen() {
       classes: matches,
     };
   }, [myClasses, route.params.studentId]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadStudentDetail() {
+      if (!authSession?.token) {
+        return;
+      }
+
+      try {
+        const detail = await getStudentDetail(authSession.token, route.params.studentId);
+        if (!cancelled) {
+          setRemoteStudent(detail);
+        }
+      } catch {
+        if (!cancelled) {
+          setRemoteStudent(undefined);
+        }
+      }
+    }
+
+    loadStudentDetail().catch(() => undefined);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authSession?.token, route.params.studentId]);
+
+  const student = useMemo(() => {
+    if (remoteStudent) {
+      return {
+        id: remoteStudent.id,
+        name: remoteStudent.name,
+        classes: remoteStudent.classes.map(item => ({ classId: item.id, className: item.name })),
+      };
+    }
+    return localStudent;
+  }, [localStudent, remoteStudent]);
 
   useEffect(() => {
     let cancelled = false;
