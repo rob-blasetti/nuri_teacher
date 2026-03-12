@@ -1,8 +1,7 @@
 import { AuthCommunity, AuthUser, SignInResponse } from './types';
+import { getBackendProfile } from '../backendProfileService';
 
 const AUTH_LOGIN_URL = 'https://liquid-spirit-auth.vercel.app/api/auth/login';
-const BACKEND_BASE_URL = 'https://liquid-spirit-backend-prod-34ac4484898d.herokuapp.com';
-const AUTH_ME_URL = `${BACKEND_BASE_URL}/api/auth/me`;
 
 type GatewayResponse = {
   message?: string;
@@ -22,13 +21,6 @@ type GatewayResponse = {
       name?: string;
     };
   };
-};
-
-type UserDetailsResponse = {
-  message?: string;
-  user?: Record<string, unknown>;
-  data?: Record<string, unknown>;
-  community?: Record<string, unknown>;
 };
 
 export async function signInWithAuthGateway(email: string, password: string): Promise<SignInResponse> {
@@ -54,8 +46,8 @@ export async function signInWithAuthGateway(email: string, password: string): Pr
   }
 
   return getAuthSessionForToken(token, {
-    user: mapAuthUser(payload?.user, email),
-    community: mapAuthCommunity(payload?.user?.community),
+    user: mapFallbackUser(payload?.user, email),
+    community: mapFallbackCommunity(payload?.user?.community),
   });
 }
 
@@ -63,105 +55,55 @@ export async function getAuthSessionForToken(
   token: string,
   fallback?: Partial<Pick<SignInResponse, 'user' | 'community'>>,
 ): Promise<SignInResponse> {
-  const fallbackUser = fallback?.user ?? mapAuthUser(undefined, 'teacher@nuri.local');
-  const userDetails = await getUserDetails(token, fallbackUser, fallback?.community);
+  const profile = await getBackendProfile(token).catch(() => undefined);
+  if (profile) {
+    return {
+      token,
+      user: profile.user,
+      community: profile.community,
+    };
+  }
 
   return {
     token,
-    user: userDetails.user,
-    community: userDetails.community,
+    user: fallback?.user ?? mapFallbackUser(undefined, 'teacher@nuri.local'),
+    community: fallback?.community,
   };
 }
 
-async function getUserDetails(
-  token: string,
-  fallbackUser: AuthUser,
-  fallbackCommunity?: AuthCommunity,
-): Promise<Pick<SignInResponse, 'user' | 'community'>> {
-  const response = await fetch(AUTH_ME_URL, {
-    method: 'GET',
-    headers: {
-      Accept: 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  const payload = (await readJson(response)) as UserDetailsResponse | undefined;
-
-  if (!response.ok) {
-    const message = typeof payload?.message === 'string' ? payload.message : 'Unable to load your account details.';
-    throw new Error(message);
-  }
-
-  const userSource = pickObject(payload?.user) ?? pickObject(payload?.data) ?? payload;
-  const communitySource = pickObject(userSource?.community) ?? pickObject(payload?.community);
-  const community = mapAuthCommunity(communitySource) ?? fallbackCommunity;
+function mapFallbackUser(source: GatewayResponse['user'] | undefined, fallbackEmail: string): AuthUser {
+  const email = source?.email ?? fallbackEmail;
+  const name =
+    [source?.firstName, source?.lastName].filter(Boolean).join(' ').trim() ||
+    source?.name ||
+    source?.fullName ||
+    email.split('@')[0] ||
+    'Teacher';
 
   return {
-    user: mapAuthUser(userSource, fallbackUser.email, fallbackUser, community),
-    community,
-  };
-}
-
-function mapAuthUser(
-  source: unknown,
-  fallbackEmail: string,
-  fallbackUser?: AuthUser,
-  community?: AuthCommunity,
-): AuthUser {
-  const user = pickObject(source);
-  const email = pickString(user?.email) ?? fallbackUser?.email ?? fallbackEmail;
-  const derivedName = email.split('@')[0] ?? 'Teacher';
-
-  return {
-    id: pickString(user?.id) ?? pickString(user?._id) ?? fallbackUser?.id ?? email,
-    name:
-      buildName(pickString(user?.firstName), pickString(user?.lastName)) ??
-      pickString(user?.name) ??
-      pickString(user?.fullName) ??
-      fallbackUser?.name ??
-      derivedName,
+    id: source?.id ?? email,
+    name,
     email,
-    firstName: pickString(user?.firstName) ?? fallbackUser?.firstName,
-    lastName: pickString(user?.lastName) ?? fallbackUser?.lastName,
-    community: community ?? fallbackUser?.community,
+    firstName: source?.firstName,
+    lastName: source?.lastName,
+    community: mapFallbackCommunity(source?.community),
   };
 }
 
-function mapAuthCommunity(source: unknown): AuthCommunity | undefined {
-  const community = pickObject(source);
-  if (!community) {
+function mapFallbackCommunity(source?: { _id?: string; id?: string; name?: string }): AuthCommunity | undefined {
+  if (!source) {
     return undefined;
   }
 
-  const id = pickString(community.id) ?? pickString(community._id);
-  const name = pickString(community.name) ?? pickString(community.title);
-
-  if (!id && !name) {
+  const id = source._id ?? source.id;
+  if (!id && !source.name) {
     return undefined;
   }
 
   return {
-    id: id ?? name ?? 'community',
-    name: name ?? id ?? 'Community',
+    id: id ?? source.name ?? 'community',
+    name: source.name ?? id ?? 'Community',
   };
-}
-
-function buildName(firstName?: string, lastName?: string): string | undefined {
-  const fullName = [firstName, lastName].filter(Boolean).join(' ').trim();
-  return fullName || undefined;
-}
-
-function pickObject(value: unknown): Record<string, unknown> | undefined {
-  if (value && typeof value === 'object' && !Array.isArray(value)) {
-    return value as Record<string, unknown>;
-  }
-
-  return undefined;
-}
-
-function pickString(value: unknown): string | undefined {
-  return typeof value === 'string' && value.trim() ? value.trim() : undefined;
 }
 
 async function readJson(response: Response): Promise<unknown> {
