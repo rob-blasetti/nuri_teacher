@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -6,10 +6,17 @@ import { RootStackParamList } from '../../../app/navigation/types';
 import { colors } from '../../../shared/theme/colors';
 import { useClasses } from '../../community/context/ClassesContext';
 import { getCurriculumLessonById, getCurriculumLessonsByGrade } from '../../lessons/data/lessonPlanContent';
+import {
+  createOrGetTodaySession,
+  listAttendanceBySession,
+  listSessionsByClass,
+  upsertAttendance,
+} from '../../../data/repositories/attendanceRepository';
 
 type RouteT = RouteProp<RootStackParamList, 'InClassMode'>;
 type AttendanceState = 'present' | 'absent' | 'unmarked';
 type ProgressState = 'learning' | 'partial' | 'confident' | 'needs-help';
+type PersistedAttendanceState = 'present' | 'absent' | 'late';
 type RosterItem = {
   id: string;
   name: string;
@@ -28,6 +35,8 @@ export function InClassModeScreen() {
     () => myClasses.find(item => item.id === route.params.classId),
     [myClasses, route.params.classId],
   );
+  const [sessionId, setSessionId] = useState<string>();
+  const [savedSessionCount, setSavedSessionCount] = useState(0);
   const [sessionNote, setSessionNote] = useState('');
   const [attendanceByStudentId, setAttendanceByStudentId] = useState<Record<string, AttendanceState>>({});
   const [progressByStudentId, setProgressByStudentId] = useState<Record<string, ProgressState>>({});
@@ -51,6 +60,48 @@ export function InClassModeScreen() {
 
     return getCurriculumLessonsByGrade(gradeKey)[0];
   }, [classItem, route.params.lessonId]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function hydrateSession() {
+      if (!classItem) {
+        return;
+      }
+
+      const activeSessionId = await createOrGetTodaySession(classItem.id);
+      const attendance = await listAttendanceBySession(activeSessionId);
+      const sessions = await listSessionsByClass(classItem.id);
+
+      if (cancelled) {
+        return;
+      }
+
+      setSessionId(activeSessionId);
+      setSavedSessionCount(sessions.length);
+
+      if (attendance.length > 0) {
+        const attendanceMap: Record<string, AttendanceState> = {};
+        const notesMap: Record<string, string> = {};
+
+        attendance.forEach(item => {
+          attendanceMap[item.studentId] = normalizeAttendance(item.status);
+          if (item.note) {
+            notesMap[item.studentId] = item.note;
+          }
+        });
+
+        setAttendanceByStudentId(attendanceMap);
+        setNotesByStudentId(notesMap);
+      }
+    }
+
+    hydrateSession().catch(() => undefined);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [classItem]);
 
   const roster = useMemo<RosterItem[]>(() => {
     if (!classItem) {
@@ -91,7 +142,26 @@ export function InClassModeScreen() {
     }));
   };
 
-  const onFinishClass = () => {
+  const onFinishClass = async () => {
+    if (!sessionId) {
+      setIsFinished(true);
+      return;
+    }
+
+    for (const student of roster) {
+      if (student.attendance === 'unmarked') {
+        continue;
+      }
+
+      await upsertAttendance({
+        sessionId,
+        studentId: student.id,
+        status: student.attendance as PersistedAttendanceState,
+        note: buildPersistedStudentNote(student),
+      });
+    }
+
+    setSavedSessionCount(current => Math.max(current, 1));
     setIsFinished(true);
   };
 
@@ -114,7 +184,7 @@ export function InClassModeScreen() {
         <View style={styles.summaryHero}>
           <Ionicons name="checkmark-circle" size={44} color={colors.success} />
           <Text style={styles.summaryTitle}>Class finished</Text>
-          <Text style={styles.summaryText}>{classItem.name} has been wrapped up for now. This summary is local-only for the moment.</Text>
+          <Text style={styles.summaryText}>{classItem.name} has been wrapped up and saved locally for now.</Text>
         </View>
 
         <View style={styles.statsRow}>
@@ -127,8 +197,8 @@ export function InClassModeScreen() {
             <Text style={styles.statValue}>{absentCount}</Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={styles.statLabel}>Unmarked</Text>
-            <Text style={styles.statValue}>{unmarkedCount}</Text>
+            <Text style={styles.statLabel}>Saved Sessions</Text>
+            <Text style={styles.statValue}>{savedSessionCount}</Text>
           </View>
         </View>
 
@@ -176,6 +246,9 @@ export function InClassModeScreen() {
           </View>
           <View style={styles.metaPill}>
             <Text style={styles.metaText}>{classItem.ageGroup ?? 'Children'}</Text>
+          </View>
+          <View style={styles.metaPill}>
+            <Text style={styles.metaText}>Saved sessions: {savedSessionCount}</Text>
           </View>
         </View>
       </View>
@@ -290,11 +363,26 @@ export function InClassModeScreen() {
         />
       </View>
 
-      <Pressable style={styles.finishButton} onPress={onFinishClass}>
+      <Pressable style={styles.finishButton} onPress={() => onFinishClass().catch(() => undefined)}>
         <Text style={styles.finishButtonText}>Finish Class</Text>
       </Pressable>
     </ScrollView>
   );
+}
+
+function buildPersistedStudentNote(student: RosterItem): string | undefined {
+  const pieces = [`progress:${student.progress}`];
+  if (student.note.trim()) {
+    pieces.push(student.note.trim());
+  }
+  return pieces.join(' | ');
+}
+
+function normalizeAttendance(value: PersistedAttendanceState): AttendanceState {
+  if (value === 'late') {
+    return 'present';
+  }
+  return value;
 }
 
 function formatProgressLabel(value: ProgressState): string {
