@@ -26,6 +26,7 @@ import { RuhiSectionScreen } from '../../features/ruhi/screens/RuhiSectionScreen
 import { RuhiJournalScreen } from '../../features/ruhi/screens/RuhiJournalScreen';
 import { SettingsScreen } from '../../features/settings/screens/SettingsScreen';
 import { CreateClassScreen } from '../../features/community/screens/CreateClassScreen';
+import { ClassSessionsScreen } from '../../features/classMode/screens/ClassSessionsScreen';
 
 const RootStack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
@@ -149,6 +150,7 @@ export function RootNavigator() {
       <RootStack.Screen name="Tabs" component={TabsNavigator} options={{ headerShown: false }} />
       <RootStack.Screen name="LessonEditor" component={LessonEditorScreen} options={{ presentation: 'modal', title: 'Lesson' }} />
       <RootStack.Screen name="CreateClass" component={CreateClassScreen} options={{ presentation: 'modal', headerShown: true, title: 'Create Class' }} />
+      <RootStack.Screen name="ClassSessions" component={ClassSessionsScreen} options={{ title: 'Class Sessions' }} />
       <RootStack.Screen name="InClassMode" component={InClassModeScreen} options={{ title: 'In-Class Mode' }} />
     </RootStack.Navigator>
   );

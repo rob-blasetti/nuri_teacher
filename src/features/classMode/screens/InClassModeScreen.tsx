@@ -6,13 +6,13 @@ import { RootStackParamList } from '../../../app/navigation/types';
 import { colors } from '../../../shared/theme/colors';
 import { useClasses } from '../../community/context/ClassesContext';
 import { getCurriculumLessonById, getCurriculumLessonsByGrade } from '../../lessons/data/lessonPlanContent';
+import { ClassSession } from '../../../data/repositories/attendanceRepository';
 import {
-  ClassSession,
-  createOrGetTodaySession,
-  listAttendanceBySession,
-  listSessionsByClass,
-  upsertAttendance,
-} from '../../../data/repositories/attendanceRepository';
+  getClassSessions,
+  getOrCreateTodayClassSession,
+  getSessionAttendance,
+  saveSessionAttendance,
+} from '../../../services/sessionService';
 
 type RouteT = RouteProp<RootStackParamList, 'InClassMode'>;
 type AttendanceState = 'present' | 'absent' | 'unmarked';
@@ -71,8 +71,8 @@ export function InClassModeScreen() {
         return;
       }
 
-      const activeSessionId = await createOrGetTodaySession(classItem.id);
-      const sessions = await listSessionsByClass(classItem.id);
+      const activeSessionId = route.params.sessionId ?? await getOrCreateTodayClassSession(classItem.id);
+      const sessions = await getClassSessions(classItem.id);
 
       if (cancelled) {
         return;
@@ -151,7 +151,7 @@ export function InClassModeScreen() {
         continue;
       }
 
-      await upsertAttendance({
+      await saveSessionAttendance({
         sessionId,
         studentId: student.id,
         status: student.attendance as PersistedAttendanceState,
@@ -160,7 +160,7 @@ export function InClassModeScreen() {
     }
 
     if (classItem) {
-      const sessions = await listSessionsByClass(classItem.id);
+      const sessions = await getClassSessions(classItem.id);
       setSavedSessions(sessions);
     }
 
@@ -172,7 +172,7 @@ export function InClassModeScreen() {
   };
 
   async function loadSessionAttendance(targetSessionId: string, cancelled: boolean) {
-    const attendance = await listAttendanceBySession(targetSessionId);
+    const attendance = await getSessionAttendance(targetSessionId);
     if (cancelled) {
       return;
     }
@@ -278,6 +278,9 @@ export function InClassModeScreen() {
           <View style={styles.metaPill}>
             <Text style={styles.metaText}>Saved sessions: {savedSessions.length}</Text>
           </View>
+          <Pressable style={styles.historyButton} onPress={() => navigation.navigate('ClassSessions', { classId: classItem.id })}>
+            <Text style={styles.historyButtonText}>View History</Text>
+          </Pressable>
         </View>
       </View>
 
@@ -521,6 +524,17 @@ const styles = StyleSheet.create({
     color: colors.textSoft,
     fontSize: 12,
     fontWeight: '700',
+  },
+  historyButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  historyButtonText: {
+    color: colors.white,
+    fontWeight: '700',
+    fontSize: 12,
   },
   statsRow: {
     flexDirection: 'row',

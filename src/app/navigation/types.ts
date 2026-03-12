@@ -1,8 +1,9 @@
 export type RootStackParamList = {
   Tabs: undefined;
   LessonEditor: { lessonId?: string } | undefined;
-  InClassMode: { classId: string; lessonId?: string };
+  InClassMode: { classId: string; lessonId?: string; sessionId?: string };
   CreateClass: undefined;
+  ClassSessions: { classId: string };
 };
 
 export type TabParamList = {
