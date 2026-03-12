@@ -21,6 +21,11 @@ import { useClasses } from '../context/ClassesContext';
 type Nav = NativeStackNavigationProp<RootStackParamList, 'CreateClass'>;
 const frequencies = ['Weekly', 'Bi-Weekly', 'Monthly', 'One-Off'] as const;
 const grades = ['Preschool', 'Grade 1', 'Grade 2'] as const;
+const weekdayOptions = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] as const;
+
+type Frequency = (typeof frequencies)[number];
+type Grade = (typeof grades)[number];
+type Weekday = (typeof weekdayOptions)[number];
 
 export function CreateClassScreen() {
   const navigation = useNavigation<Nav>();
@@ -28,33 +33,49 @@ export function CreateClassScreen() {
   const { refreshClasses } = useClasses();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [day, setDay] = useState('Sunday');
+  const [day, setDay] = useState<Weekday>('Sunday');
   const [time, setTime] = useState('10:00 AM');
-  const [frequency, setFrequency] = useState<(typeof frequencies)[number]>('Weekly');
+  const [frequency, setFrequency] = useState<Frequency>('Weekly');
   const [sessionDate, setSessionDate] = useState(new Date().toISOString().slice(0, 10));
-  const [grade, setGrade] = useState<(typeof grades)[number]>('Grade 1');
+  const [grade, setGrade] = useState<Grade>('Grade 1');
   const [curriculumLesson, setCurriculumLesson] = useState('');
   const [error, setError] = useState<string>();
+  const [success, setSuccess] = useState<string>();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const canSubmit = useMemo(
-    () => Boolean(title.trim() && day.trim() && time.trim() && sessionDate.trim() && authSession?.token),
-    [authSession?.token, day, sessionDate, time, title],
+    () => Boolean(title.trim() && time.trim() && sessionDate.trim() && authSession?.token),
+    [authSession?.token, sessionDate, time, title],
   );
 
   const onSubmit = async () => {
     if (!authSession?.token || !authSession.user.id || !authSession.community?.id) {
       setError('You need a full signed-in session with a community to create a class.');
+      setSuccess(undefined);
       return;
     }
 
-    if (!title.trim() || !day.trim() || !time.trim() || !sessionDate.trim()) {
-      setError('Fill in the class title, day, time, and first session date.');
+    if (!title.trim()) {
+      setError('Add a class title.');
+      setSuccess(undefined);
+      return;
+    }
+
+    if (!time.trim()) {
+      setError('Add a class time.');
+      setSuccess(undefined);
+      return;
+    }
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(sessionDate.trim())) {
+      setError('First session date should use YYYY-MM-DD.');
+      setSuccess(undefined);
       return;
     }
 
     setIsSubmitting(true);
     setError(undefined);
+    setSuccess(undefined);
 
     try {
       await createChildrenClass({
@@ -63,7 +84,7 @@ export function CreateClassScreen() {
         community: authSession.community.id,
         title: title.trim(),
         description: description.trim() || undefined,
-        day: day.trim(),
+        day,
         time: time.trim(),
         frequency,
         sessionDate,
@@ -71,7 +92,8 @@ export function CreateClassScreen() {
         curriculumLesson: curriculumLesson.trim() || undefined,
       });
       await refreshClasses();
-      navigation.goBack();
+      setSuccess('Class created successfully.');
+      setTimeout(() => navigation.goBack(), 700);
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : 'Unable to create class.');
     } finally {
@@ -83,20 +105,49 @@ export function CreateClassScreen() {
     <KeyboardAvoidingView style={styles.safe} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <Text style={styles.title}>Create Children&apos;s Class</Text>
-        <Text style={styles.subtitle}>Create a new class in your community and seed its first session.</Text>
+        <Text style={styles.subtitle}>Set up a new class in your community and seed the first session.</Text>
 
         <View style={styles.card}>
-          <Text style={styles.label}>Class title</Text>
-          <TextInput style={styles.input} value={title} onChangeText={setTitle} placeholder="Radiant Hearts" placeholderTextColor={colors.textMuted} />
+          <Text style={styles.sectionHeading}>Class basics</Text>
+
+          <Text style={styles.label}>Class title *</Text>
+          <TextInput
+            style={styles.input}
+            value={title}
+            onChangeText={setTitle}
+            placeholder="Radiant Hearts"
+            placeholderTextColor={colors.textMuted}
+          />
 
           <Text style={styles.label}>Description</Text>
-          <TextInput style={[styles.input, styles.multiline]} value={description} onChangeText={setDescription} multiline placeholder="Optional notes about the class" placeholderTextColor={colors.textMuted} />
+          <TextInput
+            style={[styles.input, styles.multiline]}
+            value={description}
+            onChangeText={setDescription}
+            multiline
+            placeholder="Optional notes about the class"
+            placeholderTextColor={colors.textMuted}
+          />
+
+          <Text style={styles.sectionHeading}>Schedule</Text>
 
           <Text style={styles.label}>Day</Text>
-          <TextInput style={styles.input} value={day} onChangeText={setDay} placeholder="Sunday" placeholderTextColor={colors.textMuted} />
+          <View style={styles.choiceRow}>
+            {weekdayOptions.map(item => (
+              <Pressable key={item} style={[styles.choiceChip, item === day && styles.choiceChipActive]} onPress={() => setDay(item)}>
+                <Text style={[styles.choiceText, item === day && styles.choiceTextActive]}>{item}</Text>
+              </Pressable>
+            ))}
+          </View>
 
-          <Text style={styles.label}>Time</Text>
-          <TextInput style={styles.input} value={time} onChangeText={setTime} placeholder="10:00 AM" placeholderTextColor={colors.textMuted} />
+          <Text style={styles.label}>Time *</Text>
+          <TextInput
+            style={styles.input}
+            value={time}
+            onChangeText={setTime}
+            placeholder="10:00 AM"
+            placeholderTextColor={colors.textMuted}
+          />
 
           <Text style={styles.label}>Frequency</Text>
           <View style={styles.choiceRow}>
@@ -107,8 +158,17 @@ export function CreateClassScreen() {
             ))}
           </View>
 
-          <Text style={styles.label}>First session date</Text>
-          <TextInput style={styles.input} value={sessionDate} onChangeText={setSessionDate} placeholder="2026-03-15" placeholderTextColor={colors.textMuted} />
+          <Text style={styles.label}>First session date *</Text>
+          <TextInput
+            style={styles.input}
+            value={sessionDate}
+            onChangeText={setSessionDate}
+            placeholder="2026-03-15"
+            placeholderTextColor={colors.textMuted}
+          />
+          <Text style={styles.helpText}>Use YYYY-MM-DD.</Text>
+
+          <Text style={styles.sectionHeading}>Curriculum</Text>
 
           <Text style={styles.label}>Grade</Text>
           <View style={styles.choiceRow}>
@@ -120,11 +180,21 @@ export function CreateClassScreen() {
           </View>
 
           <Text style={styles.label}>Curriculum lesson</Text>
-          <TextInput style={styles.input} value={curriculumLesson} onChangeText={setCurriculumLesson} placeholder="Optional, e.g. 1.1 or 2.3" placeholderTextColor={colors.textMuted} />
+          <TextInput
+            style={styles.input}
+            value={curriculumLesson}
+            onChangeText={setCurriculumLesson}
+            placeholder="Optional, e.g. 1.1 or 2.3"
+            placeholderTextColor={colors.textMuted}
+          />
 
           {error ? <Text style={styles.error}>{error}</Text> : null}
+          {success ? <Text style={styles.success}>{success}</Text> : null}
 
-          <Pressable style={[styles.button, (!canSubmit || isSubmitting) && styles.buttonDisabled]} disabled={!canSubmit || isSubmitting} onPress={onSubmit}>
+          <Pressable
+            style={[styles.button, (!canSubmit || isSubmitting) && styles.buttonDisabled]}
+            disabled={!canSubmit || isSubmitting}
+            onPress={onSubmit}>
             {isSubmitting ? <ActivityIndicator color={colors.white} /> : <Text style={styles.buttonText}>Create Class</Text>}
           </Pressable>
         </View>
@@ -138,17 +208,58 @@ const styles = StyleSheet.create({
   container: { padding: 16, paddingBottom: 32 },
   title: { fontSize: 26, fontWeight: '700', color: colors.textPrimary, marginBottom: 6 },
   subtitle: { color: colors.textMuted, lineHeight: 20, marginBottom: 12 },
-  card: { backgroundColor: colors.surfaceSoft, borderRadius: 18, borderWidth: 1, borderColor: colors.surfaceBorder, padding: 16 },
+  card: {
+    backgroundColor: colors.surfaceSoft,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    padding: 16,
+  },
+  sectionHeading: {
+    color: colors.textPrimary,
+    fontSize: 18,
+    fontWeight: '700',
+    marginTop: 8,
+    marginBottom: 8,
+  },
   label: { color: colors.textSoft, marginBottom: 6, marginTop: 10 },
-  input: { backgroundColor: colors.white, borderWidth: 1, borderColor: colors.surfaceBorderSoft, borderRadius: 12, paddingHorizontal: 12, height: 48, color: colors.textOnWhite },
+  helpText: {
+    color: colors.textMuted,
+    marginTop: 6,
+    fontSize: 12,
+  },
+  input: {
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorderSoft,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    height: 48,
+    color: colors.textOnWhite,
+  },
   multiline: { minHeight: 96, paddingTop: 12, textAlignVertical: 'top' },
   choiceRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  choiceChip: { paddingHorizontal: 12, paddingVertical: 10, borderRadius: 999, borderWidth: 1, borderColor: colors.surfaceBorderSoft, backgroundColor: colors.white },
+  choiceChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorderSoft,
+    backgroundColor: colors.white,
+  },
   choiceChipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
   choiceText: { color: colors.textOnWhite, fontWeight: '600' },
   choiceTextActive: { color: colors.white },
   error: { color: colors.danger, marginTop: 12 },
-  button: { backgroundColor: colors.primary, borderRadius: 12, alignItems: 'center', justifyContent: 'center', height: 48, marginTop: 18 },
+  success: { color: colors.success, marginTop: 12, fontWeight: '700' },
+  button: {
+    backgroundColor: colors.primary,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 48,
+    marginTop: 18,
+  },
   buttonDisabled: { opacity: 0.7 },
   buttonText: { color: colors.white, fontWeight: '700' },
 });
