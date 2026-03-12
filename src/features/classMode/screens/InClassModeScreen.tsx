@@ -7,6 +7,7 @@ import { colors } from '../../../shared/theme/colors';
 import { useClasses } from '../../community/context/ClassesContext';
 import { getCurriculumLessonById, getCurriculumLessonsByGrade } from '../../lessons/data/lessonPlanContent';
 import {
+  ClassSession,
   createOrGetTodaySession,
   listAttendanceBySession,
   listSessionsByClass,
@@ -36,7 +37,8 @@ export function InClassModeScreen() {
     [myClasses, route.params.classId],
   );
   const [sessionId, setSessionId] = useState<string>();
-  const [savedSessionCount, setSavedSessionCount] = useState(0);
+  const [savedSessions, setSavedSessions] = useState<ClassSession[]>([]);
+  const [activeSessionDate, setActiveSessionDate] = useState<string>();
   const [sessionNote, setSessionNote] = useState('');
   const [attendanceByStudentId, setAttendanceByStudentId] = useState<Record<string, AttendanceState>>({});
   const [progressByStudentId, setProgressByStudentId] = useState<Record<string, ProgressState>>({});
@@ -70,7 +72,6 @@ export function InClassModeScreen() {
       }
 
       const activeSessionId = await createOrGetTodaySession(classItem.id);
-      const attendance = await listAttendanceBySession(activeSessionId);
       const sessions = await listSessionsByClass(classItem.id);
 
       if (cancelled) {
@@ -78,22 +79,12 @@ export function InClassModeScreen() {
       }
 
       setSessionId(activeSessionId);
-      setSavedSessionCount(sessions.length);
+      setSavedSessions(sessions);
 
-      if (attendance.length > 0) {
-        const attendanceMap: Record<string, AttendanceState> = {};
-        const notesMap: Record<string, string> = {};
+      const todaySession = sessions.find(session => session.id === activeSessionId);
+      setActiveSessionDate(todaySession?.date ?? new Date().toISOString().slice(0, 10));
 
-        attendance.forEach(item => {
-          attendanceMap[item.studentId] = normalizeAttendance(item.status);
-          if (item.note) {
-            notesMap[item.studentId] = item.note;
-          }
-        });
-
-        setAttendanceByStudentId(attendanceMap);
-        setNotesByStudentId(notesMap);
-      }
+      await loadSessionAttendance(activeSessionId, cancelled);
     }
 
     hydrateSession().catch(() => undefined);
@@ -142,6 +133,13 @@ export function InClassModeScreen() {
     }));
   };
 
+  const onOpenSavedSession = async (savedSession: ClassSession) => {
+    setSessionId(savedSession.id);
+    setActiveSessionDate(savedSession.date);
+    setIsFinished(false);
+    await loadSessionAttendance(savedSession.id, false);
+  };
+
   const onFinishClass = async () => {
     if (!sessionId) {
       setIsFinished(true);
@@ -161,13 +159,43 @@ export function InClassModeScreen() {
       });
     }
 
-    setSavedSessionCount(current => Math.max(current, 1));
+    if (classItem) {
+      const sessions = await listSessionsByClass(classItem.id);
+      setSavedSessions(sessions);
+    }
+
     setIsFinished(true);
   };
 
   const onCloseSummary = () => {
     navigation.goBack();
   };
+
+  async function loadSessionAttendance(targetSessionId: string, cancelled: boolean) {
+    const attendance = await listAttendanceBySession(targetSessionId);
+    if (cancelled) {
+      return;
+    }
+
+    const attendanceMap: Record<string, AttendanceState> = {};
+    const progressMap: Record<string, ProgressState> = {};
+    const notesMap: Record<string, string> = {};
+
+    attendance.forEach(item => {
+      attendanceMap[item.studentId] = normalizeAttendance(item.status);
+      if (item.note) {
+        const parsed = parsePersistedStudentNote(item.note);
+        progressMap[item.studentId] = parsed.progress;
+        if (parsed.note) {
+          notesMap[item.studentId] = parsed.note;
+        }
+      }
+    });
+
+    setAttendanceByStudentId(attendanceMap);
+    setProgressByStudentId(progressMap);
+    setNotesByStudentId(notesMap);
+  }
 
   if (!classItem) {
     return (
@@ -198,7 +226,7 @@ export function InClassModeScreen() {
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statLabel}>Saved Sessions</Text>
-            <Text style={styles.statValue}>{savedSessionCount}</Text>
+            <Text style={styles.statValue}>{savedSessions.length}</Text>
           </View>
         </View>
 
@@ -248,9 +276,27 @@ export function InClassModeScreen() {
             <Text style={styles.metaText}>{classItem.ageGroup ?? 'Children'}</Text>
           </View>
           <View style={styles.metaPill}>
-            <Text style={styles.metaText}>Saved sessions: {savedSessionCount}</Text>
+            <Text style={styles.metaText}>Saved sessions: {savedSessions.length}</Text>
           </View>
         </View>
+      </View>
+
+      <View style={styles.sectionCard}>
+        <Text style={styles.sectionTitle}>Recent Sessions</Text>
+        <Text style={styles.sectionSubtitle}>Reopen a locally saved session summary for this class.</Text>
+        {savedSessions.length > 0 ? (
+          savedSessions.slice(0, 5).map(savedSession => (
+            <Pressable key={savedSession.id} style={styles.savedSessionRow} onPress={() => onOpenSavedSession(savedSession).catch(() => undefined)}>
+              <View style={styles.savedSessionCopy}>
+                <Text style={styles.savedSessionTitle}>{savedSession.date}</Text>
+                <Text style={styles.savedSessionSubtitle}>{savedSession.id === sessionId ? 'Currently open session' : 'Tap to reopen session summary'}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.textSoft} />
+            </Pressable>
+          ))
+        ) : (
+          <Text style={styles.emptyRosterText}>No saved sessions yet for this class.</Text>
+        )}
       </View>
 
       <View style={styles.statsRow}>
@@ -378,6 +424,13 @@ function buildPersistedStudentNote(student: RosterItem): string | undefined {
   return pieces.join(' | ');
 }
 
+function parsePersistedStudentNote(value: string): { progress: ProgressState; note?: string } {
+  const [first, ...rest] = value.split(' | ');
+  const progress = first?.startsWith('progress:') ? (first.replace('progress:', '') as ProgressState) : 'learning';
+  const note = rest.join(' | ').trim() || undefined;
+  return { progress, note };
+}
+
 function normalizeAttendance(value: PersistedAttendanceState): AttendanceState {
   if (value === 'late') {
     return 'present';
@@ -498,6 +551,31 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.surfaceBorder,
     padding: 16,
+  },
+  savedSessionRow: {
+    backgroundColor: colors.white,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  savedSessionCopy: {
+    flex: 1,
+    marginRight: 12,
+  },
+  savedSessionTitle: {
+    color: colors.textOnWhite,
+    fontWeight: '700',
+  },
+  savedSessionSubtitle: {
+    color: colors.textSoft,
+    marginTop: 4,
+    fontSize: 12,
   },
   lessonHeaderRow: {
     flexDirection: 'row',
