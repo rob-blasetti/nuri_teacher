@@ -16,6 +16,7 @@ import { RootStackParamList } from '../../../app/navigation/types';
 import { colors } from '../../../shared/theme/colors';
 import { useAuth } from '../../auth/context/AuthContext';
 import { createChildrenClass } from '../../../services/createClassService';
+import { getCurriculumLessonsByGrade } from '../../lessons/data/lessonPlanContent';
 import { useClasses } from '../context/ClassesContext';
 
 type Nav = NativeStackNavigationProp<RootStackParamList, 'CreateClass'>;
@@ -43,6 +44,8 @@ export function CreateClassScreen() {
   const [success, setSuccess] = useState<string>();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const availableLessons = useMemo(() => getCurriculumLessonsByGrade(grade), [grade]);
+
   const canSubmit = useMemo(
     () => Boolean(title.trim() && time.trim() && sessionDate.trim() && authSession?.token),
     [authSession?.token, sessionDate, time, title],
@@ -55,20 +58,38 @@ export function CreateClassScreen() {
       return;
     }
 
-    if (!title.trim()) {
+    const trimmedTitle = title.trim();
+    const trimmedTime = time.trim();
+    const trimmedSessionDate = sessionDate.trim();
+    const trimmedCurriculumLesson = curriculumLesson.trim();
+
+    if (!trimmedTitle) {
       setError('Add a class title.');
       setSuccess(undefined);
       return;
     }
 
-    if (!time.trim()) {
+    if (!trimmedTime) {
       setError('Add a class time.');
       setSuccess(undefined);
       return;
     }
 
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(sessionDate.trim())) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(trimmedSessionDate)) {
       setError('First session date should use YYYY-MM-DD.');
+      setSuccess(undefined);
+      return;
+    }
+
+    const parsedDate = new Date(`${trimmedSessionDate}T00:00:00Z`);
+    if (Number.isNaN(parsedDate.getTime()) || parsedDate.toISOString().slice(0, 10) !== trimmedSessionDate) {
+      setError('First session date must be a real calendar date.');
+      setSuccess(undefined);
+      return;
+    }
+
+    if (trimmedCurriculumLesson && !availableLessons.some(item => item.id === trimmedCurriculumLesson)) {
+      setError('Choose a lesson from the available options for this grade, or leave it blank.');
       setSuccess(undefined);
       return;
     }
@@ -82,14 +103,14 @@ export function CreateClassScreen() {
         token: authSession.token,
         createdBy: authSession.user.id,
         community: authSession.community.id,
-        title: title.trim(),
+        title: trimmedTitle,
         description: description.trim() || undefined,
         day,
-        time: time.trim(),
+        time: trimmedTime,
         frequency,
-        sessionDate,
+        sessionDate: trimmedSessionDate,
         grade,
-        curriculumLesson: curriculumLesson.trim() || undefined,
+        curriculumLesson: trimmedCurriculumLesson || undefined,
       });
       await refreshClasses();
       setSuccess('Class created successfully.');
@@ -173,20 +194,42 @@ export function CreateClassScreen() {
           <Text style={styles.label}>Grade</Text>
           <View style={styles.choiceRow}>
             {grades.map(item => (
-              <Pressable key={item} style={[styles.choiceChip, item === grade && styles.choiceChipActive]} onPress={() => setGrade(item)}>
+              <Pressable
+                key={item}
+                style={[styles.choiceChip, item === grade && styles.choiceChipActive]}
+                onPress={() => {
+                  setGrade(item);
+                  setCurriculumLesson('');
+                }}>
                 <Text style={[styles.choiceText, item === grade && styles.choiceTextActive]}>{item}</Text>
               </Pressable>
             ))}
           </View>
 
           <Text style={styles.label}>Curriculum lesson</Text>
-          <TextInput
-            style={styles.input}
-            value={curriculumLesson}
-            onChangeText={setCurriculumLesson}
-            placeholder="Optional, e.g. 1.1 or 2.3"
-            placeholderTextColor={colors.textMuted}
-          />
+          <Text style={styles.helpText}>Optional. Pick one of the imported lessons for this grade.</Text>
+          <View style={styles.choiceRow}>
+            <Pressable
+              style={[styles.choiceChip, !curriculumLesson && styles.choiceChipActive]}
+              onPress={() => setCurriculumLesson('')}>
+              <Text style={[styles.choiceText, !curriculumLesson && styles.choiceTextActive]}>No lesson yet</Text>
+            </Pressable>
+            {availableLessons.map(item => (
+              <Pressable
+                key={item.id}
+                style={[styles.choiceChip, curriculumLesson === item.id && styles.choiceChipActive]}
+                onPress={() => setCurriculumLesson(item.id)}>
+                <Text style={[styles.choiceText, curriculumLesson === item.id && styles.choiceTextActive]}>
+                  {item.title}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+          {curriculumLesson ? (
+            <Text style={styles.selectedLessonText}>
+              Selected: {availableLessons.find(item => item.id === curriculumLesson)?.subtitle ?? curriculumLesson}
+            </Text>
+          ) : null}
 
           {error ? <Text style={styles.error}>{error}</Text> : null}
           {success ? <Text style={styles.success}>{success}</Text> : null}
@@ -250,6 +293,11 @@ const styles = StyleSheet.create({
   choiceChipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
   choiceText: { color: colors.textOnWhite, fontWeight: '600' },
   choiceTextActive: { color: colors.white },
+  selectedLessonText: {
+    color: colors.textSubtle,
+    marginTop: 8,
+    lineHeight: 18,
+  },
   error: { color: colors.danger, marginTop: 12 },
   success: { color: colors.success, marginTop: 12, fontWeight: '700' },
   button: {

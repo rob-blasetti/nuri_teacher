@@ -60,7 +60,7 @@ By 1.0, a teacher should be able to:
 ---
 
 ## Phase 3 — In-Class Mode
-**Status:** In progress
+**Status:** Strong progress
 
 ### Done
 - start class from Home
@@ -70,28 +70,32 @@ By 1.0, a teacher should be able to:
 - per-student progress markers
 - per-student quick notes
 - finish class summary
-
-### Next
 - persist local session summaries
 - show recent session history
 - reopen past local session summaries
+- save session-level notes locally
+
+### Next
 - create a lightweight session log model for future sync
+- tighten summary/history metadata and UX
+- add more obvious save/reopen feedback where needed
 
 **Milestone:** A teacher can run a class and keep local records.
 
 ---
 
 ## Phase 4 — Student Workflow
-**Status:** Partial
+**Status:** Strong progress
 
 ### Done
 - students list sourced from live class participants
 - backend student IDs preserved for future API integration
+- Student Detail shows linked classes
+- Student Detail surfaces recent local notes/progress where available
+- backend student detail route integrated when available
 
 ### Needed for 1.0
-- make Student Detail useful with available live/local data
-- show classes linked to each student
-- surface recent local notes/progress where possible
+- refine Student Detail presentation and empty states
 - prepare for later backend student detail APIs without blocking 1.0
 
 **Milestone:** The student tab is useful before deeper backend sync arrives.
@@ -123,6 +127,7 @@ By 1.0, a teacher should be able to:
 - student progress markers
 - student quick notes
 - local session summary persistence
+- useful Student Detail with local history
 - basic UX polish
 
 ## Nice-to-have, but not required for 1.0
@@ -138,28 +143,28 @@ By 1.0, a teacher should be able to:
 # Recommended Build Order From Here
 
 ## Next 1
-**Persist local session summaries**
-- save finished class sessions locally
-- add recent session history view
-
-## Next 2
-**Make Student Detail more useful**
-- show classes tied to the student
-- surface local notes/progress where available
-- keep structure ready for future API detail fetches
-
-## Next 3
 **Polish create-class flow**
 - better pickers and form controls
-- smarter grade / curriculum selection
-- clearer feedback states
+- smarter grade / curriculum lesson selection
+- clearer validation and feedback states
 
-## Next 4
+## Next 2
+**Tighten in-class history UX**
+- richer summary/history metadata
+- clearer save/reopen states
+- cleaner session list presentation
+
+## Next 3
 **1.0 polish pass**
 - consistency
 - performance
 - loading states
 - QA and release prep
+
+## Next 4
+**Future-ready local session model**
+- lightweight structure for eventual backend sync
+- preserve room for richer class-level notes/reporting
 
 ---
 
