@@ -88,6 +88,40 @@ export async function listSessionsByClass(classId: string): Promise<ClassSession
 
   return sessions;
 }
+
+export async function getSessionById(sessionId: string): Promise<ClassSession | undefined> {
+  const db = await getDb();
+  const [result] = await db.executeSql(
+    'SELECT id, class_id, date, title, notes FROM class_sessions WHERE id = ? LIMIT 1',
+    [sessionId],
+  );
+
+  if (result.rows.length === 0) {
+    return undefined;
+  }
+
+  const row = result.rows.item(0) as {
+    id: string;
+    class_id: string;
+    date: string;
+    title: string | null;
+    notes: string | null;
+  };
+
+  return {
+    id: row.id,
+    classId: row.class_id,
+    date: row.date,
+    title: row.title ?? undefined,
+    notes: row.notes ?? undefined,
+  };
+}
+
+export async function updateSessionNotes(sessionId: string, notes?: string): Promise<void> {
+  const db = await getDb();
+  await db.executeSql('UPDATE class_sessions SET notes = ? WHERE id = ?', [notes?.trim() || null, sessionId]);
+}
+
 export async function upsertAttendance(input: {
   sessionId: string;
   studentId: string;

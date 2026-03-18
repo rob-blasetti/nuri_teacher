@@ -8,10 +8,12 @@ import { useClasses } from '../../community/context/ClassesContext';
 import { getCurriculumLessonById, getCurriculumLessonsByGrade } from '../../lessons/data/lessonPlanContent';
 import { ClassSession } from '../../../data/repositories/attendanceRepository';
 import {
+  getClassSession,
   getClassSessions,
   getOrCreateTodayClassSession,
   getSessionAttendance,
   saveSessionAttendance,
+  saveSessionNotes,
 } from '../../../services/sessionService';
 
 type RouteT = RouteProp<RootStackParamList, 'InClassMode'>;
@@ -38,7 +40,6 @@ export function InClassModeScreen() {
   );
   const [sessionId, setSessionId] = useState<string>();
   const [savedSessions, setSavedSessions] = useState<ClassSession[]>([]);
-  const [activeSessionDate, setActiveSessionDate] = useState<string>();
   const [sessionNote, setSessionNote] = useState('');
   const [attendanceByStudentId, setAttendanceByStudentId] = useState<Record<string, AttendanceState>>({});
   const [progressByStudentId, setProgressByStudentId] = useState<Record<string, ProgressState>>({});
@@ -81,8 +82,8 @@ export function InClassModeScreen() {
       setSessionId(activeSessionId);
       setSavedSessions(sessions);
 
-      const todaySession = sessions.find(session => session.id === activeSessionId);
-      setActiveSessionDate(todaySession?.date ?? new Date().toISOString().slice(0, 10));
+      const activeSession = sessions.find(session => session.id === activeSessionId) ?? await getClassSession(activeSessionId);
+      setSessionNote(activeSession?.notes ?? '');
 
       await loadSessionAttendance(activeSessionId, cancelled);
     }
@@ -92,7 +93,7 @@ export function InClassModeScreen() {
     return () => {
       cancelled = true;
     };
-  }, [classItem]);
+  }, [classItem, route.params.sessionId]);
 
   const roster = useMemo<RosterItem[]>(() => {
     if (!classItem) {
@@ -110,7 +111,6 @@ export function InClassModeScreen() {
 
   const presentCount = roster.filter(student => student.attendance === 'present').length;
   const absentCount = roster.filter(student => student.attendance === 'absent').length;
-  const unmarkedCount = roster.filter(student => student.attendance === 'unmarked').length;
 
   const setAttendance = (studentId: string, attendance: AttendanceState) => {
     setAttendanceByStudentId(current => ({
@@ -135,7 +135,7 @@ export function InClassModeScreen() {
 
   const onOpenSavedSession = async (savedSession: ClassSession) => {
     setSessionId(savedSession.id);
-    setActiveSessionDate(savedSession.date);
+    setSessionNote(savedSession.notes ?? '');
     setIsFinished(false);
     await loadSessionAttendance(savedSession.id, false);
   };
@@ -145,6 +145,11 @@ export function InClassModeScreen() {
       setIsFinished(true);
       return;
     }
+
+    await saveSessionNotes({
+      sessionId,
+      notes: sessionNote,
+    });
 
     for (const student of roster) {
       if (student.attendance === 'unmarked') {
@@ -293,6 +298,9 @@ export function InClassModeScreen() {
               <View style={styles.savedSessionCopy}>
                 <Text style={styles.savedSessionTitle}>{savedSession.date}</Text>
                 <Text style={styles.savedSessionSubtitle}>{savedSession.id === sessionId ? 'Currently open session' : 'Tap to reopen session summary'}</Text>
+                {savedSession.notes?.trim() ? (
+                  <Text style={styles.savedSessionNote} numberOfLines={2}>{savedSession.notes.trim()}</Text>
+                ) : null}
               </View>
               <Ionicons name="chevron-forward" size={18} color={colors.textSoft} />
             </Pressable>
@@ -590,6 +598,12 @@ const styles = StyleSheet.create({
     color: colors.textSoft,
     marginTop: 4,
     fontSize: 12,
+  },
+  savedSessionNote: {
+    color: colors.textOnWhite,
+    marginTop: 8,
+    lineHeight: 18,
+    opacity: 0.75,
   },
   lessonHeaderRow: {
     flexDirection: 'row',

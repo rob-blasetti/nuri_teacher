@@ -14,6 +14,7 @@ type SessionListItem = {
   id: string;
   date: string;
   markedCount: number;
+  note?: string;
 };
 
 export function ClassSessionsScreen() {
@@ -41,6 +42,7 @@ export function ClassSessionsScreen() {
           id: row.id,
           date: row.date,
           markedCount: attendance.length,
+          note: row.notes,
         });
       }
       enriched.sort((a, b) => b.date.localeCompare(a.date));
@@ -92,6 +94,7 @@ export function ClassSessionsScreen() {
             onPress={() => navigation.navigate('InClassMode', { classId: route.params.classId, sessionId: item.id })}>
             <Text style={styles.cardTitle}>{item.date}</Text>
             <Text style={styles.cardMeta}>Marked students: {item.markedCount}</Text>
+            {item.note?.trim() ? <Text style={styles.cardNote} numberOfLines={2}>{item.note.trim()}</Text> : null}
           </Pressable>
         )}
       />
@@ -125,4 +128,5 @@ const styles = StyleSheet.create({
   },
   cardTitle: { color: colors.textOnWhite, fontWeight: '700', fontSize: 16 },
   cardMeta: { color: colors.textSoft, marginTop: 4 },
+  cardNote: { color: colors.textOnWhite, marginTop: 8, lineHeight: 18, opacity: 0.75 },
 });
