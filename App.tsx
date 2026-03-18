@@ -39,12 +39,12 @@ function App() {
         }
 
         await Promise.all([bootstrapDatabase(), restoreAuthSession()]);
-
+      } catch (error) {
+        console.error('App bootstrap failed', error);
+      } finally {
         if (!cancelled) {
           setBootstrapped(true);
         }
-      } catch (error) {
-        console.error('App bootstrap failed', error);
       }
     }
 

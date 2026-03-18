@@ -1,11 +1,8 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FastImage from 'react-native-fast-image';
-import { listClasses } from '../../../data/repositories/classRepository';
-import { listStudents } from '../../../data/repositories/studentRepository';
-import { getDb } from '../../../data/db/client';
 import { colors } from '../../../shared/theme/colors';
 import { useClasses } from '../../community/context/ClassesContext';
 import { useAuth } from '../../auth/context/AuthContext';
@@ -13,48 +10,41 @@ import { useAuth } from '../../auth/context/AuthContext';
 export function HomeScreen() {
   const navigation = useNavigation<any>();
   const { authSession } = useAuth();
-  const { myClasses } = useClasses();
-  const [nextClass, setNextClass] = useState<string>('No class set');
-  const [studentCount, setStudentCount] = useState(0);
-  const [needsReview, setNeedsReview] = useState(0);
+  const { myClasses, isLoading: isLoadingClasses } = useClasses();
   const [failedImages, setFailedImages] = useState<Record<string, true>>({});
-  const [isLoadingStats, setIsLoadingStats] = useState(true);
 
   const communityName = useMemo(
     () => authSession?.community?.name ?? authSession?.user.community?.name ?? 'Community',
     [authSession?.community?.name, authSession?.user.community?.name],
   );
 
-  const load = useCallback(async () => {
-    setIsLoadingStats(true);
-    const [classes, students] = await Promise.all([listClasses(), listStudents()]);
-    setStudentCount(students.length);
-    setNextClass(classes[0] ? `${classes[0].name} • ${classes[0].schedule ?? 'No schedule'}` : 'No class set');
+  const studentCount = useMemo(() => {
+    const uniqueStudentIds = new Set<string>();
+    for (const classItem of myClasses) {
+      classItem.participantIds.forEach(studentId => uniqueStudentIds.add(studentId));
+    }
+    return uniqueStudentIds.size;
+  }, [myClasses]);
 
-    const db = await getDb();
-    const [result] = await db.executeSql(
-      "SELECT COUNT(*) as count FROM progress_records WHERE status != 'confident'",
-    );
-    setNeedsReview((result.rows.item(0).count as number) || 0);
-    setIsLoadingStats(false);
-  }, []);
+  const nextClass = useMemo(() => {
+    const classWithBestSchedule = [...myClasses].sort((a, b) => {
+      const aLabel = getNextSessionLabel(a.schedule);
+      const bLabel = getNextSessionLabel(b.schedule);
+      return aLabel.localeCompare(bLabel);
+    })[0];
 
-  useEffect(() => {
-    load();
+    return classWithBestSchedule
+      ? `${classWithBestSchedule.name} • ${classWithBestSchedule.schedule ?? 'No schedule'}`
+      : 'No class set';
+  }, [myClasses]);
 
-    const unsubscribeFocus = navigation.addListener('focus', load);
-
-    return () => {
-      unsubscribeFocus();
-    };
-  }, [load, navigation]);
 
   return (
     <View style={styles.container}>
       <Text style={styles.eyebrow}>{communityName}</Text>
       <Text style={styles.title}>Children&apos;s Classes</Text>
 
-      {isLoadingStats ? (
+      {isLoadingClasses ? (
         <View style={styles.statusCard}>
           <ActivityIndicator color={colors.primary} />
           <Text style={styles.statusText}>Loading class overview...</Text>
@@ -72,8 +62,8 @@ export function HomeScreen() {
           <Text style={styles.value}>{studentCount}</Text>
         </View>
         <View style={[styles.card, styles.half]}>
-          <Text style={styles.label}>Need review</Text>
-          <Text style={styles.value}>{needsReview}</Text>
+          <Text style={styles.label}>My Classes</Text>
+          <Text style={styles.value}>{myClasses.length}</Text>
         </View>
       </View>
 
