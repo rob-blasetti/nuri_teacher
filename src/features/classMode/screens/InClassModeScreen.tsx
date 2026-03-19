@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { RootStackParamList } from '../../../app/navigation/types';
@@ -45,6 +45,10 @@ export function InClassModeScreen() {
   const [progressByStudentId, setProgressByStudentId] = useState<Record<string, ProgressState>>({});
   const [notesByStudentId, setNotesByStudentId] = useState<Record<string, string>>({});
   const [isFinished, setIsFinished] = useState(false);
+  const [isHydrating, setIsHydrating] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<string>();
+  const [loadError, setLoadError] = useState<string>();
 
   const lesson = useMemo(() => {
     if (route.params.lessonId) {
@@ -69,23 +73,39 @@ export function InClassModeScreen() {
 
     async function hydrateSession() {
       if (!classItem) {
+        setIsHydrating(false);
         return;
       }
 
-      const activeSessionId = route.params.sessionId ?? await getOrCreateTodayClassSession(classItem.id);
-      const sessions = await getClassSessions(classItem.id);
+      setIsHydrating(true);
+      setLoadError(undefined);
+      setStatusMessage(undefined);
 
-      if (cancelled) {
-        return;
+      try {
+        const activeSessionId = route.params.sessionId ?? await getOrCreateTodayClassSession(classItem.id);
+        const sessions = await getClassSessions(classItem.id);
+
+        if (cancelled) {
+          return;
+        }
+
+        setSessionId(activeSessionId);
+        setSavedSessions(sessions);
+
+        const activeSession = sessions.find(session => session.id === activeSessionId) ?? await getClassSession(activeSessionId);
+        setSessionNote(activeSession?.notes ?? '');
+
+        await loadSessionAttendance(activeSessionId, cancelled);
+      } catch (error) {
+        if (!cancelled) {
+          const message = error instanceof Error ? error.message : 'Unable to load this class session right now.';
+          setLoadError(message);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsHydrating(false);
+        }
       }
-
-      setSessionId(activeSessionId);
-      setSavedSessions(sessions);
-
-      const activeSession = sessions.find(session => session.id === activeSessionId) ?? await getClassSession(activeSessionId);
-      setSessionNote(activeSession?.notes ?? '');
-
-      await loadSessionAttendance(activeSessionId, cancelled);
     }
 
     hydrateSession().catch(() => undefined);
@@ -134,10 +154,22 @@ export function InClassModeScreen() {
   };
 
   const onOpenSavedSession = async (savedSession: ClassSession) => {
-    setSessionId(savedSession.id);
-    setSessionNote(savedSession.notes ?? '');
-    setIsFinished(false);
-    await loadSessionAttendance(savedSession.id, false);
+    setStatusMessage(undefined);
+    setLoadError(undefined);
+    setIsHydrating(true);
+
+    try {
+      setSessionId(savedSession.id);
+      setSessionNote(savedSession.notes ?? '');
+      setIsFinished(false);
+      await loadSessionAttendance(savedSession.id, false);
+      setStatusMessage('Opened locally saved session summary.');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to reopen that saved session.';
+      setLoadError(message);
+    } finally {
+      setIsHydrating(false);
+    }
   };
 
   const onFinishClass = async () => {
@@ -146,30 +178,42 @@ export function InClassModeScreen() {
       return;
     }
 
-    await saveSessionNotes({
-      sessionId,
-      notes: sessionNote,
-    });
+    setIsSaving(true);
+    setLoadError(undefined);
+    setStatusMessage(undefined);
 
-    for (const student of roster) {
-      if (student.attendance === 'unmarked') {
-        continue;
+    try {
+      await saveSessionNotes({
+        sessionId,
+        notes: sessionNote,
+      });
+
+      for (const student of roster) {
+        if (student.attendance === 'unmarked') {
+          continue;
+        }
+
+        await saveSessionAttendance({
+          sessionId,
+          studentId: student.id,
+          status: student.attendance as PersistedAttendanceState,
+          note: buildPersistedStudentNote(student),
+        });
       }
 
-      await saveSessionAttendance({
-        sessionId,
-        studentId: student.id,
-        status: student.attendance as PersistedAttendanceState,
-        note: buildPersistedStudentNote(student),
-      });
-    }
+      if (classItem) {
+        const sessions = await getClassSessions(classItem.id);
+        setSavedSessions(sessions);
+      }
 
-    if (classItem) {
-      const sessions = await getClassSessions(classItem.id);
-      setSavedSessions(sessions);
+      setStatusMessage('Saved locally.');
+      setIsFinished(true);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to save this class session right now.';
+      setLoadError(message);
+    } finally {
+      setIsSaving(false);
     }
-
-    setIsFinished(true);
   };
 
   const onCloseSummary = () => {
@@ -207,6 +251,28 @@ export function InClassModeScreen() {
       <View style={styles.emptyContainer}>
         <Text style={styles.emptyTitle}>Class not found</Text>
         <Text style={styles.emptyText}>Go back and launch In-Class Mode from one of your live classes.</Text>
+      </View>
+    );
+  }
+
+  if (isHydrating) {
+    return (
+      <View style={styles.emptyContainer}>
+        <ActivityIndicator color={colors.primary} />
+        <Text style={styles.emptyTitle}>Loading class session...</Text>
+        <Text style={styles.emptyText}>Pulling together the roster, recent session data, and local notes.</Text>
+      </View>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyTitle}>Session unavailable</Text>
+        <Text style={styles.errorText}>{loadError}</Text>
+        <Pressable style={styles.retryButton} onPress={() => navigation.replace('InClassMode', route.params)}>
+          <Text style={styles.retryButtonText}>Try Again</Text>
+        </Pressable>
       </View>
     );
   }
@@ -272,6 +338,7 @@ export function InClassModeScreen() {
         <Text style={styles.eyebrow}>In-Class Mode</Text>
         <Text style={styles.title}>{classItem.name}</Text>
         <Text style={styles.summary}>{classItem.schedule ?? 'Schedule coming soon'}</Text>
+        {statusMessage ? <Text style={styles.statusPill}>{statusMessage}</Text> : null}
 
         <View style={styles.metaRow}>
           <View style={styles.metaPill}>
@@ -420,8 +487,8 @@ export function InClassModeScreen() {
         />
       </View>
 
-      <Pressable style={styles.finishButton} onPress={() => onFinishClass().catch(() => undefined)}>
-        <Text style={styles.finishButtonText}>Finish Class</Text>
+      <Pressable style={[styles.finishButton, isSaving ? styles.finishButtonDisabled : null]} disabled={isSaving} onPress={() => onFinishClass().catch(() => undefined)}>
+        {isSaving ? <ActivityIndicator color={colors.white} /> : <Text style={styles.finishButtonText}>Finish Class</Text>}
       </Pressable>
     </ScrollView>
   );
@@ -503,6 +570,17 @@ const styles = StyleSheet.create({
   summary: {
     color: colors.textMuted,
     marginTop: 8,
+  },
+  statusPill: {
+    color: colors.white,
+    backgroundColor: colors.success,
+    alignSelf: 'flex-start',
+    marginTop: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+    fontWeight: '700',
+    fontSize: 12,
   },
   summaryTitle: {
     color: colors.textPrimary,
@@ -791,6 +869,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  finishButtonDisabled: {
+    opacity: 0.75,
+  },
   finishButtonText: {
     color: colors.white,
     fontWeight: '800',
@@ -812,5 +893,22 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     marginTop: 8,
     textAlign: 'center',
+  },
+  errorText: {
+    color: colors.danger,
+    marginTop: 10,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  retryButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginTop: 16,
+  },
+  retryButtonText: {
+    color: colors.white,
+    fontWeight: '700',
   },
 });
