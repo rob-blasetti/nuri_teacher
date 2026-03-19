@@ -24,7 +24,10 @@ export function StudentDetailScreen() {
   const { authSession } = useAuth();
   const { myClasses } = useClasses();
   const [history, setHistory] = useState<StudentHistoryItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+  const [isLoadingRemoteStudent, setIsLoadingRemoteStudent] = useState(false);
+  const [historyError, setHistoryError] = useState<string>();
+  const [remoteStudentError, setRemoteStudentError] = useState<string>();
   const [remoteStudent, setRemoteStudent] = useState<{
     id: string;
     name: string;
@@ -59,18 +62,29 @@ export function StudentDetailScreen() {
     let cancelled = false;
 
     async function loadStudentDetail() {
-      if (!authSession?.token) {
+      if (!authSession?.token || authSession.token === 'guest-session') {
+        setRemoteStudent(undefined);
+        setRemoteStudentError(undefined);
+        setIsLoadingRemoteStudent(false);
         return;
       }
+
+      setIsLoadingRemoteStudent(true);
+      setRemoteStudentError(undefined);
 
       try {
         const detail = await getStudentDetail(authSession.token, route.params.studentId);
         if (!cancelled) {
           setRemoteStudent(detail);
         }
-      } catch {
+      } catch (error) {
         if (!cancelled) {
           setRemoteStudent(undefined);
+          setRemoteStudentError(error instanceof Error ? error.message : 'Unable to load student details from the server.');
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoadingRemoteStudent(false);
         }
       }
     }
@@ -99,11 +113,13 @@ export function StudentDetailScreen() {
     async function loadHistory() {
       if (!student) {
         setHistory([]);
-        setIsLoading(false);
+        setHistoryError(undefined);
+        setIsLoadingHistory(false);
         return;
       }
 
-      setIsLoading(true);
+      setIsLoadingHistory(true);
+      setHistoryError(undefined);
       const items: StudentHistoryItem[] = [];
 
       for (const classRef of student.classes) {
@@ -132,14 +148,15 @@ export function StudentDetailScreen() {
 
       if (!cancelled) {
         setHistory(items);
-        setIsLoading(false);
+        setIsLoadingHistory(false);
       }
     }
 
-    loadHistory().catch(() => {
+    loadHistory().catch(error => {
       if (!cancelled) {
         setHistory([]);
-        setIsLoading(false);
+        setHistoryError(error instanceof Error ? error.message : 'Unable to load local session history.');
+        setIsLoadingHistory(false);
       }
     });
 
@@ -148,11 +165,22 @@ export function StudentDetailScreen() {
     };
   }, [student]);
 
+  if (!student && isLoadingRemoteStudent) {
+    return (
+      <View style={styles.emptyContainer}>
+        <ActivityIndicator color={colors.primary} />
+        <Text style={styles.title}>Loading student...</Text>
+        <Text style={styles.metaCentered}>Pulling together student details and recent class context.</Text>
+      </View>
+    );
+  }
+
   if (!student) {
     return (
-      <View style={styles.container}>
+      <View style={styles.emptyContainer}>
         <Text style={styles.title}>Student not found</Text>
-        <Text style={styles.meta}>This student is not currently present in your live class roster.</Text>
+        <Text style={styles.metaCentered}>This student is not currently present in your live class roster.</Text>
+        {remoteStudentError ? <Text style={styles.errorText}>{remoteStudentError}</Text> : null}
       </View>
     );
   }
@@ -163,6 +191,12 @@ export function StudentDetailScreen() {
         <Text style={styles.title}>{student.name}</Text>
         <Text style={styles.meta}>Student ID: {student.id}</Text>
         <Text style={styles.meta}>Classes: {student.classes.map(item => item.className).join(' • ')}</Text>
+        {isLoadingRemoteStudent ? <Text style={styles.infoText}>Refreshing server details...</Text> : null}
+        {!isLoadingRemoteStudent && remoteStudent ? <Text style={styles.infoText}>Showing server-backed student details.</Text> : null}
+        {!isLoadingRemoteStudent && !remoteStudent && authSession?.token !== 'guest-session' ? (
+          <Text style={styles.infoText}>Using local class roster data for now.</Text>
+        ) : null}
+        {remoteStudentError && localStudent ? <Text style={styles.warningText}>Server detail unavailable. Showing local class data.</Text> : null}
       </View>
 
       <View style={styles.sectionCard}>
@@ -179,9 +213,11 @@ export function StudentDetailScreen() {
         <Text style={styles.sectionTitle}>Recent Session History</Text>
         <Text style={styles.sectionSubtitle}>Pulled from your locally saved in-class session summaries.</Text>
 
-        {isLoading ? <ActivityIndicator color={colors.primary} style={styles.loader} /> : null}
+        {isLoadingHistory ? <ActivityIndicator color={colors.primary} style={styles.loader} /> : null}
 
-        {!isLoading && history.length === 0 ? (
+        {!isLoadingHistory && historyError ? <Text style={styles.errorText}>{historyError}</Text> : null}
+
+        {!isLoadingHistory && !historyError && history.length === 0 ? (
           <Text style={styles.empty}>No saved session history for this student yet.</Text>
         ) : null}
 
@@ -223,6 +259,13 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
     gap: 12,
   },
+  emptyContainer: {
+    flex: 1,
+    backgroundColor: colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
   hero: {
     backgroundColor: colors.surfaceSoft,
     borderRadius: 18,
@@ -240,6 +283,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textSoft,
     marginBottom: 4,
+  },
+  metaCentered: {
+    fontSize: 14,
+    color: colors.textSoft,
+    marginTop: 8,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  infoText: {
+    marginTop: 8,
+    color: colors.textSubtle,
+    lineHeight: 20,
+  },
+  warningText: {
+    marginTop: 8,
+    color: colors.warning,
+    lineHeight: 20,
   },
   sectionCard: {
     backgroundColor: colors.white,
@@ -277,6 +337,10 @@ const styles = StyleSheet.create({
   },
   empty: {
     color: colors.textMuted,
+  },
+  errorText: {
+    color: colors.danger,
+    lineHeight: 20,
   },
   historyCard: {
     borderTopWidth: 1,
