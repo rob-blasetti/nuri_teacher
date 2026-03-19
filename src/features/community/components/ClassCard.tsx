@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import { colors } from '../../../shared/theme/colors';
@@ -21,16 +21,22 @@ export function ClassCard({ classItem }: ClassCardProps) {
     facilitators,
     participants,
   } = classItem;
+  const [imageFailed, setImageFailed] = useState(false);
 
   return (
     <View style={styles.card}>
-      {imageUrl ? (
+      {imageUrl && !imageFailed ? (
         <FastImage
           source={{ uri: imageUrl, priority: FastImage.priority.normal }}
           style={styles.image}
           resizeMode={FastImage.resizeMode.cover}
+          onError={() => setImageFailed(true)}
         />
-      ) : null}
+      ) : (
+        <View style={styles.imageFallback}>
+          <Text style={styles.imageFallbackText}>{activityType ?? name}</Text>
+        </View>
+      )}
 
       {activityType ? <Text style={styles.eyebrow}>{activityType}</Text> : null}
       <Text style={styles.title}>{name}</Text>
@@ -93,6 +99,21 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     marginBottom: 14,
     backgroundColor: colors.surfaceSoft,
+  },
+  imageFallback: {
+    height: 160,
+    borderRadius: 14,
+    marginBottom: 14,
+    backgroundColor: colors.primaryStrong,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+  },
+  imageFallbackText: {
+    color: colors.white,
+    fontSize: 20,
+    fontWeight: '700',
+    textAlign: 'center',
   },
   eyebrow: {
     color: colors.highlight,

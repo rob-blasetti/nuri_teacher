@@ -10,7 +10,7 @@ import { useAuth } from '../../auth/context/AuthContext';
 export function HomeScreen() {
   const navigation = useNavigation<any>();
   const { authSession } = useAuth();
-  const { myClasses, isLoading: isLoadingClasses } = useClasses();
+  const { myClasses, isLoading: isLoadingClasses, error: classesError, refreshClasses } = useClasses();
   const [failedImages, setFailedImages] = useState<Record<string, true>>({});
 
   const communityName = useMemo(
@@ -51,6 +51,15 @@ export function HomeScreen() {
         </View>
       ) : null}
 
+      {classesError ? (
+        <View style={styles.statusCard}>
+          <Text style={styles.errorText}>{classesError}</Text>
+          <Pressable style={styles.retryButton} onPress={() => refreshClasses().catch(() => undefined)}>
+            <Text style={styles.retryButtonText}>Try Again</Text>
+          </Pressable>
+        </View>
+      ) : null}
+
       <View style={styles.card}>
         <Text style={styles.label}>Next class</Text>
         <Text style={styles.value}>{nextClass}</Text>
@@ -79,6 +88,7 @@ export function HomeScreen() {
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carouselContent}>
         {myClasses.length > 0 ? (
+          
           myClasses.map(classItem => (
             <View key={classItem.id} style={styles.carouselCard}>
               {classItem.imageUrl && !failedImages[classItem.id] ? (
@@ -115,12 +125,12 @@ export function HomeScreen() {
               </View>
             </View>
           ))
-        ) : (
+        ) : !isLoadingClasses && !classesError ? (
           <View style={styles.statusCardWide}>
             <Text style={styles.statusTitle}>No classes yet</Text>
             <Text style={styles.statusText}>Create your first children&apos;s class to start building your teaching flow.</Text>
           </View>
-        )}
+        ) : null}
       </ScrollView>
     </View>
   );
@@ -203,6 +213,16 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontWeight: '700',
   },
+  retryButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  retryButtonText: {
+    color: colors.white,
+    fontWeight: '700',
+  },
   statusCard: {
     backgroundColor: colors.surfaceSoft,
     borderWidth: 1,
@@ -232,6 +252,10 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     textAlign: 'center',
     lineHeight: 20,
+  },
+  errorText: {
+    color: colors.danger,
+    textAlign: 'center',
   },
   carouselContent: { paddingRight: 16, gap: 12 },
   carouselCard: {

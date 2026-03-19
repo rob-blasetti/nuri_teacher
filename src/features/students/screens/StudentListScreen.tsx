@@ -1,6 +1,6 @@
-import React, { useCallback, useState } from 'react';
+import React, { useMemo } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { StudentsStackParamList } from '../../../app/navigation/types';
 import { colors } from '../../../shared/theme/colors';
@@ -50,21 +50,8 @@ function buildStudentsFromClasses(myClasses: ReturnType<typeof useClasses>['myCl
 
 export function StudentListScreen() {
   const navigation = useNavigation<NavProp>();
-  const { myClasses } = useClasses();
-  const [students, setStudents] = useState<LiveStudentItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const load = useCallback(() => {
-    setIsLoading(true);
-    setStudents(buildStudentsFromClasses(myClasses));
-    setIsLoading(false);
-  }, [myClasses]);
-
-  useFocusEffect(
-    useCallback(() => {
-      load();
-    }, [load]),
-  );
+  const { myClasses, isLoading, error, refreshClasses } = useClasses();
+  const students = useMemo(() => buildStudentsFromClasses(myClasses), [myClasses]);
 
   return (
     <View style={styles.container}>
@@ -78,15 +65,28 @@ export function StudentListScreen() {
         </View>
       ) : null}
 
+      {error ? (
+        <View style={styles.statusCard}>
+          <Text style={styles.error}>{error}</Text>
+          <Pressable style={styles.retryButton} onPress={() => refreshClasses().catch(() => undefined)}>
+            <Text style={styles.retryText}>Try Again</Text>
+          </Pressable>
+        </View>
+      ) : null}
+
       <FlatList
         data={students}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.list}
         ListEmptyComponent={
-          !isLoading ? (
+          !isLoading && !error ? (
             <View style={styles.statusCard}>
-              <Text style={styles.statusTitle}>No students yet</Text>
-              <Text style={styles.statusText}>Students will appear here once they are part of your live class roster.</Text>
+              <Text style={styles.statusTitle}>{myClasses.length === 0 ? 'No classes yet' : 'No students yet'}</Text>
+              <Text style={styles.statusText}>
+                {myClasses.length === 0
+                  ? 'Create or join a class first, then student rosters will appear here.'
+                  : 'Students will appear here once they are part of your live class roster.'}
+              </Text>
             </View>
           ) : null
         }
@@ -142,6 +142,20 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     textAlign: 'center',
     lineHeight: 20,
+  },
+  error: {
+    color: colors.danger,
+    textAlign: 'center',
+  },
+  retryButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  retryText: {
+    color: colors.white,
+    fontWeight: '700',
   },
   card: {
     backgroundColor: colors.white,
