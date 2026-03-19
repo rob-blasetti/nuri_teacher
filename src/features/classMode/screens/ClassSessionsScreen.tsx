@@ -15,6 +15,8 @@ type SessionListItem = {
   date: string;
   markedCount: number;
   note?: string;
+  noteCount: number;
+  summaryLabel: string;
 };
 
 export function ClassSessionsScreen() {
@@ -23,6 +25,7 @@ export function ClassSessionsScreen() {
   const { myClasses } = useClasses();
   const [sessions, setSessions] = useState<SessionListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string>();
 
   const classItem = useMemo(
     () => myClasses.find(item => item.id === route.params.classId),
@@ -34,15 +37,23 @@ export function ClassSessionsScreen() {
 
     async function load() {
       setIsLoading(true);
+      setError(undefined);
       const rows = await getClassSessions(route.params.classId);
       const enriched: SessionListItem[] = [];
       for (const row of rows) {
         const attendance = await getSessionAttendance(row.id);
+        const noteCount = attendance.filter(item => {
+          const parsed = parsePersistedStudentNote(item.note);
+          return Boolean(parsed.note);
+        }).length;
+
         enriched.push({
           id: row.id,
           date: row.date,
           markedCount: attendance.length,
           note: row.notes,
+          noteCount,
+          summaryLabel: buildSessionSummaryLabel(attendance.length, noteCount),
         });
       }
       enriched.sort((a, b) => b.date.localeCompare(a.date));
@@ -52,9 +63,10 @@ export function ClassSessionsScreen() {
       }
     }
 
-    load().catch(() => {
+    load().catch(loadError => {
       if (!cancelled) {
         setSessions([]);
+        setError(loadError instanceof Error ? loadError.message : 'Unable to load saved class sessions.');
         setIsLoading(false);
       }
     });
@@ -76,12 +88,21 @@ export function ClassSessionsScreen() {
         </View>
       ) : null}
 
+      {error ? (
+        <View style={styles.statusCard}>
+          <Text style={styles.errorText}>{error}</Text>
+          <Pressable style={styles.retryButton} onPress={() => navigation.replace('ClassSessions', { classId: route.params.classId })}>
+            <Text style={styles.retryButtonText}>Try Again</Text>
+          </Pressable>
+        </View>
+      ) : null}
+
       <FlatList
         data={sessions}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.list}
         ListEmptyComponent={
-          !isLoading ? (
+          !isLoading && !error ? (
             <View style={styles.statusCard}>
               <Text style={styles.statusTitle}>No saved sessions yet</Text>
               <Text style={styles.statusText}>Run and finish a class session to build history here.</Text>
@@ -92,14 +113,38 @@ export function ClassSessionsScreen() {
           <Pressable
             style={styles.card}
             onPress={() => navigation.navigate('InClassMode', { classId: route.params.classId, sessionId: item.id })}>
-            <Text style={styles.cardTitle}>{item.date}</Text>
-            <Text style={styles.cardMeta}>Marked students: {item.markedCount}</Text>
+            <View style={styles.cardHeader}>
+              <Text style={styles.cardTitle}>{item.date}</Text>
+              <View style={styles.openBadge}>
+                <Text style={styles.openBadgeText}>Open</Text>
+              </View>
+            </View>
+            <Text style={styles.cardMeta}>{item.summaryLabel}</Text>
             {item.note?.trim() ? <Text style={styles.cardNote} numberOfLines={2}>{item.note.trim()}</Text> : null}
+            <Text style={styles.cardFootnote}>Session ID: {item.id}</Text>
           </Pressable>
         )}
       />
     </View>
   );
+}
+
+function parsePersistedStudentNote(value?: string): { note?: string } {
+  if (!value) {
+    return {};
+  }
+
+  const [, ...rest] = value.split(' | ');
+  const note = rest.join(' | ').trim() || undefined;
+  return { note };
+}
+
+function buildSessionSummaryLabel(markedCount: number, noteCount: number): string {
+  if (noteCount > 0) {
+    return `Marked students: ${markedCount} • Student notes: ${noteCount}`;
+  }
+
+  return `Marked students: ${markedCount}`;
 }
 
 const styles = StyleSheet.create({
@@ -126,7 +171,33 @@ const styles = StyleSheet.create({
     borderColor: colors.surfaceBorder,
     padding: 14,
   },
-  cardTitle: { color: colors.textOnWhite, fontWeight: '700', fontSize: 16 },
-  cardMeta: { color: colors.textSoft, marginTop: 4 },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 12,
+  },
+  cardTitle: { color: colors.textOnWhite, fontWeight: '700', fontSize: 16, flex: 1 },
+  openBadge: {
+    backgroundColor: colors.primarySoft,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  openBadgeText: {
+    color: colors.primaryStrong,
+    fontWeight: '700',
+    fontSize: 12,
+  },
+  cardMeta: { color: colors.textSoft, marginTop: 8 },
   cardNote: { color: colors.textOnWhite, marginTop: 8, lineHeight: 18, opacity: 0.75 },
+  cardFootnote: { color: colors.textMuted, marginTop: 10, fontSize: 12 },
+  errorText: { color: colors.danger, textAlign: 'center', lineHeight: 20 },
+  retryButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  retryButtonText: { color: colors.white, fontWeight: '700' },
 });
