@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import FastImage from 'react-native-fast-image';
+import { AppPressable } from '../../../shared/components/AppPressable';
 import { colors } from '../../../shared/theme/colors';
 import { CommunityChildrenClass } from '../../../services/classesService';
 
@@ -24,7 +25,7 @@ export function ClassCard({ classItem }: ClassCardProps) {
   const [imageFailed, setImageFailed] = useState(false);
 
   return (
-    <View style={styles.card}>
+    <AppPressable style={styles.card}>
       {imageUrl && !imageFailed ? (
         <FastImage
           source={{ uri: imageUrl, priority: FastImage.priority.normal }}
@@ -81,7 +82,7 @@ export function ClassCard({ classItem }: ClassCardProps) {
           {participants.length > 0 ? participants.join(', ') : 'No participants added yet'}
         </Text>
       </View>
-    </View>
+    </AppPressable>
   );
 }
 

@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { StudentsStackParamList } from '../../../app/navigation/types';
 import { AnimatedScreen } from '../../../shared/components/AnimatedScreen';
+import { AppPressable } from '../../../shared/components/AppPressable';
 import { LoadingCard } from '../../../shared/components/LoadingCard';
 import { colors } from '../../../shared/theme/colors';
 import { useClasses } from '../../community/context/ClassesContext';
@@ -89,13 +90,13 @@ export function StudentListScreen() {
         }
         renderItem={({ item, index }) => (
           <AnimatedScreen delayMs={index * 24}>
-            <Pressable
+            <AppPressable
               style={styles.card}
               onPress={() => navigation.navigate('StudentDetail', { studentId: item.id })}>
               <Text style={styles.cardTitle}>{item.name}</Text>
               <Text style={styles.cardMeta}>{item.classNames.join(' • ') || 'Class not assigned yet'}</Text>
               <Text style={styles.cardMetaSecondary}>ID: {item.id}</Text>
-            </Pressable>
+            </AppPressable>
           </AnimatedScreen>
         )}
       />

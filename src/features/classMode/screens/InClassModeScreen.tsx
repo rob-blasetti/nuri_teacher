@@ -4,6 +4,7 @@ import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { RootStackParamList } from '../../../app/navigation/types';
 import { AnimatedScreen } from '../../../shared/components/AnimatedScreen';
+import { AppPressable } from '../../../shared/components/AppPressable';
 import { LoadingCard } from '../../../shared/components/LoadingCard';
 import { colors } from '../../../shared/theme/colors';
 import { useClasses } from '../../community/context/ClassesContext';
@@ -338,7 +339,7 @@ export function InClassModeScreen() {
   return (
     <AnimatedScreen style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
-      <View style={styles.hero}>
+        <View style={styles.hero}>
         <Text style={styles.eyebrow}>In-Class Mode</Text>
         <Text style={styles.title}>{classItem.name}</Text>
         <Text style={styles.summary}>{classItem.schedule ?? 'Schedule coming soon'}</Text>
@@ -403,9 +404,9 @@ export function InClassModeScreen() {
               <Text style={styles.sectionTitle}>Current Lesson</Text>
               <Text style={styles.sectionSubtitle}>{lesson.title} • {lesson.subtitle}</Text>
             </View>
-            <Pressable style={styles.lessonButton} onPress={() => navigation.navigate('Tabs', { screen: 'LessonsStack' } as any)}>
+            <AppPressable style={styles.lessonButton} onPress={() => navigation.navigate('Tabs', { screen: 'LessonsStack' } as any)}>
               <Text style={styles.lessonButtonText}>Open Lessons</Text>
-            </Pressable>
+            </AppPressable>
           </View>
 
           <View style={styles.lessonPreviewCard}>

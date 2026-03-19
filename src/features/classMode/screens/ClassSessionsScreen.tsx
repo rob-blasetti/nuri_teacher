@@ -5,6 +5,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../../app/navigation/types';
 import { useClasses } from '../../community/context/ClassesContext';
 import { AnimatedScreen } from '../../../shared/components/AnimatedScreen';
+import { AppPressable } from '../../../shared/components/AppPressable';
 import { LoadingCard } from '../../../shared/components/LoadingCard';
 import { colors } from '../../../shared/theme/colors';
 import { getClassSessions, getSessionAttendance } from '../../../services/sessionService';
@@ -108,7 +109,7 @@ export function ClassSessionsScreen() {
         }
         renderItem={({ item, index }) => (
           <AnimatedScreen delayMs={index * 28}>
-            <Pressable
+            <AppPressable
               style={styles.card}
               onPress={() => navigation.navigate('InClassMode', { classId: route.params.classId, sessionId: item.id })}>
               <View style={styles.cardHeader}>
@@ -120,7 +121,7 @@ export function ClassSessionsScreen() {
               <Text style={styles.cardMeta}>{item.summaryLabel}</Text>
               {item.note?.trim() ? <Text style={styles.cardNote} numberOfLines={2}>{item.note.trim()}</Text> : null}
               <Text style={styles.cardFootnote}>Session ID: {item.id}</Text>
-            </Pressable>
+            </AppPressable>
           </AnimatedScreen>
         )}
       />

@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FastImage from 'react-native-fast-image';
 import { AnimatedScreen } from '../../../shared/components/AnimatedScreen';
+import { AppPressable } from '../../../shared/components/AppPressable';
 import { LoadingCard } from '../../../shared/components/LoadingCard';
 import { colors } from '../../../shared/theme/colors';
 import { useClasses } from '../../community/context/ClassesContext';
@@ -112,11 +113,11 @@ export function HomeScreen() {
                     Facilitators: {classItem.facilitators.join(', ') || 'Unassigned'}
                   </Text>
                   <Text style={styles.nextSessionText}>Next Session: {getNextSessionLabel(classItem.schedule)}</Text>
-                  <Pressable
+                  <AppPressable
                     style={styles.startClassButton}
                     onPress={() => navigation.navigate('InClassMode', { classId: classItem.id })}>
                     <Text style={styles.startClassButtonText}>Start Class</Text>
-                  </Pressable>
+                  </AppPressable>
                 </View>
               </View>
             </AnimatedScreen>

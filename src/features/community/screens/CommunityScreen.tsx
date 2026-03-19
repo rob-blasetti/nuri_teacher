@@ -1,7 +1,8 @@
 import React from 'react';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { useClasses } from '../context/ClassesContext';
 import { AnimatedScreen } from '../../../shared/components/AnimatedScreen';
+import { AppPressable } from '../../../shared/components/AppPressable';
 import { LoadingCard } from '../../../shared/components/LoadingCard';
 import { colors } from '../../../shared/theme/colors';
 import { ClassCard } from '../components/ClassCard';
@@ -23,9 +24,9 @@ export function CommunityScreen() {
       {error ? (
         <View style={styles.statusCard}>
           <Text style={styles.error}>{error}</Text>
-          <Pressable style={styles.retryButton} onPress={() => refreshClasses().catch(() => undefined)}>
+          <AppPressable style={styles.retryButton} onPress={() => refreshClasses().catch(() => undefined)}>
             <Text style={styles.retryText}>Try Again</Text>
-          </Pressable>
+          </AppPressable>
         </View>
       ) : null}
 
