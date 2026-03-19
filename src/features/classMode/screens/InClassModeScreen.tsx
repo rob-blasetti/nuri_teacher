@@ -3,6 +3,8 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, 
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { RootStackParamList } from '../../../app/navigation/types';
+import { AnimatedScreen } from '../../../shared/components/AnimatedScreen';
+import { LoadingCard } from '../../../shared/components/LoadingCard';
 import { colors } from '../../../shared/theme/colors';
 import { useClasses } from '../../community/context/ClassesContext';
 import { getCurriculumLessonById, getCurriculumLessonsByGrade } from '../../lessons/data/lessonPlanContent';
@@ -258,9 +260,8 @@ export function InClassModeScreen() {
   if (isHydrating) {
     return (
       <View style={styles.emptyContainer}>
-        <ActivityIndicator color={colors.primary} />
+        <LoadingCard text="Pulling together the roster, recent session data, and local notes..." />
         <Text style={styles.emptyTitle}>Loading class session...</Text>
-        <Text style={styles.emptyText}>Pulling together the roster, recent session data, and local notes.</Text>
       </View>
     );
   }
@@ -279,12 +280,13 @@ export function InClassModeScreen() {
 
   if (isFinished) {
     return (
-      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-        <View style={styles.summaryHero}>
-          <Ionicons name="checkmark-circle" size={44} color={colors.success} />
-          <Text style={styles.summaryTitle}>Class finished</Text>
-          <Text style={styles.summaryText}>{classItem.name} has been wrapped up and saved locally for now.</Text>
-        </View>
+      <AnimatedScreen style={styles.container}>
+        <ScrollView contentContainerStyle={styles.content}>
+          <View style={styles.summaryHero}>
+            <Ionicons name="checkmark-circle" size={44} color={colors.success} />
+            <Text style={styles.summaryTitle}>Class finished</Text>
+            <Text style={styles.summaryText}>{classItem.name} has been wrapped up and saved locally for now.</Text>
+          </View>
 
         <View style={styles.statsRow}>
           <View style={styles.statCard}>
@@ -328,12 +330,14 @@ export function InClassModeScreen() {
         <Pressable style={styles.finishButton} onPress={onCloseSummary}>
           <Text style={styles.finishButtonText}>Done</Text>
         </Pressable>
-      </ScrollView>
+        </ScrollView>
+      </AnimatedScreen>
     );
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <AnimatedScreen style={styles.container}>
+      <ScrollView contentContainerStyle={styles.content}>
       <View style={styles.hero}>
         <Text style={styles.eyebrow}>In-Class Mode</Text>
         <Text style={styles.title}>{classItem.name}</Text>
@@ -490,7 +494,8 @@ export function InClassModeScreen() {
       <Pressable style={[styles.finishButton, isSaving ? styles.finishButtonDisabled : null]} disabled={isSaving} onPress={() => onFinishClass().catch(() => undefined)}>
         {isSaving ? <ActivityIndicator color={colors.white} /> : <Text style={styles.finishButtonText}>Finish Class</Text>}
       </Pressable>
-    </ScrollView>
+      </ScrollView>
+    </AnimatedScreen>
   );
 }
 

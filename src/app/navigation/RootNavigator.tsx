@@ -38,6 +38,7 @@ function StudentsNavigator() {
   return (
     <StudentsStack.Navigator
       screenOptions={{
+        animation: 'slide_from_right',
         headerStyle: { backgroundColor: colors.surface },
         headerTintColor: colors.textPrimary,
         headerTitleStyle: { color: colors.textPrimary },
@@ -53,6 +54,7 @@ function LessonsNavigator() {
   return (
     <LessonsStack.Navigator
       screenOptions={{
+        animation: 'slide_from_right',
         headerStyle: { backgroundColor: colors.surface },
         headerTintColor: colors.textPrimary,
         headerTitleStyle: { color: colors.textPrimary },
@@ -70,6 +72,7 @@ function RuhiNavigator() {
   return (
     <RuhiStack.Navigator
       screenOptions={{
+        animation: 'slide_from_right',
         headerStyle: { backgroundColor: colors.surface },
         headerTintColor: colors.textPrimary,
         headerTitleStyle: { color: colors.textPrimary },
@@ -143,6 +146,7 @@ export function RootNavigator() {
   return (
     <RootStack.Navigator
       screenOptions={{
+        animation: 'fade_from_bottom',
         contentStyle: { backgroundColor: colors.background },
         headerShown: false,
       }}

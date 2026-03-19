@@ -1,7 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { StudentsStackParamList } from '../../../app/navigation/types';
+import { AnimatedScreen } from '../../../shared/components/AnimatedScreen';
+import { LoadingCard } from '../../../shared/components/LoadingCard';
 import { colors } from '../../../shared/theme/colors';
 import { useClasses } from '../../community/context/ClassesContext';
 import { listAttendanceBySession, listSessionsByClass } from '../../../data/repositories/attendanceRepository';
@@ -168,9 +170,8 @@ export function StudentDetailScreen() {
   if (!student && isLoadingRemoteStudent) {
     return (
       <View style={styles.emptyContainer}>
-        <ActivityIndicator color={colors.primary} />
+        <LoadingCard text="Pulling together student details and recent class context..." />
         <Text style={styles.title}>Loading student...</Text>
-        <Text style={styles.metaCentered}>Pulling together student details and recent class context.</Text>
       </View>
     );
   }
@@ -186,51 +187,55 @@ export function StudentDetailScreen() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.hero}>
-        <Text style={styles.title}>{student.name}</Text>
-        <Text style={styles.meta}>Student ID: {student.id}</Text>
-        <Text style={styles.meta}>Classes: {student.classes.map(item => item.className).join(' • ')}</Text>
-        {isLoadingRemoteStudent ? <Text style={styles.infoText}>Refreshing server details...</Text> : null}
-        {!isLoadingRemoteStudent && remoteStudent ? <Text style={styles.infoText}>Showing server-backed student details.</Text> : null}
-        {!isLoadingRemoteStudent && !remoteStudent && authSession?.token !== 'guest-session' ? (
-          <Text style={styles.infoText}>Using local class roster data for now.</Text>
-        ) : null}
-        {remoteStudentError && localStudent ? <Text style={styles.warningText}>Server detail unavailable. Showing local class data.</Text> : null}
-      </View>
+    <AnimatedScreen style={styles.container}>
+      <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.hero}>
+          <Text style={styles.title}>{student.name}</Text>
+          <Text style={styles.meta}>Student ID: {student.id}</Text>
+          <Text style={styles.meta}>Classes: {student.classes.map(item => item.className).join(' • ')}</Text>
+          {isLoadingRemoteStudent ? <Text style={styles.infoText}>Refreshing server details...</Text> : null}
+          {!isLoadingRemoteStudent && remoteStudent ? <Text style={styles.infoText}>Showing server-backed student details.</Text> : null}
+          {!isLoadingRemoteStudent && !remoteStudent && authSession?.token !== 'guest-session' ? (
+            <Text style={styles.infoText}>Using local class roster data for now.</Text>
+          ) : null}
+          {remoteStudentError && localStudent ? <Text style={styles.warningText}>Server detail unavailable. Showing local class data.</Text> : null}
+        </View>
 
-      <View style={styles.sectionCard}>
-        <Text style={styles.sectionTitle}>Current Classes</Text>
-        {student.classes.map(classItem => (
-          <View key={classItem.classId} style={styles.classRow}>
-            <Text style={styles.className}>{classItem.className}</Text>
-            <Text style={styles.classId}>{classItem.classId}</Text>
-          </View>
-        ))}
-      </View>
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionTitle}>Current Classes</Text>
+          {student.classes.map(classItem => (
+            <View key={classItem.classId} style={styles.classRow}>
+              <Text style={styles.className}>{classItem.className}</Text>
+              <Text style={styles.classId}>{classItem.classId}</Text>
+            </View>
+          ))}
+        </View>
 
-      <View style={styles.sectionCard}>
-        <Text style={styles.sectionTitle}>Recent Session History</Text>
-        <Text style={styles.sectionSubtitle}>Pulled from your locally saved in-class session summaries.</Text>
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionTitle}>Recent Session History</Text>
+          <Text style={styles.sectionSubtitle}>Pulled from your locally saved in-class session summaries.</Text>
 
-        {isLoadingHistory ? <ActivityIndicator color={colors.primary} style={styles.loader} /> : null}
+          {isLoadingHistory ? <LoadingCard text="Loading saved session history..." /> : null}
 
-        {!isLoadingHistory && historyError ? <Text style={styles.errorText}>{historyError}</Text> : null}
+          {!isLoadingHistory && historyError ? <Text style={styles.errorText}>{historyError}</Text> : null}
 
-        {!isLoadingHistory && !historyError && history.length === 0 ? (
-          <Text style={styles.empty}>No saved session history for this student yet.</Text>
-        ) : null}
+          {!isLoadingHistory && !historyError && history.length === 0 ? (
+            <Text style={styles.empty}>No saved session history for this student yet.</Text>
+          ) : null}
 
-        {history.map(item => (
-          <View key={`${item.sessionId}-${item.className}`} style={styles.historyCard}>
-            <Text style={styles.historyClass}>{item.className}</Text>
-            <Text style={styles.historyMeta}>{item.date} • {item.status}</Text>
-            {item.progress ? <Text style={styles.historyProgress}>Progress: {formatProgress(item.progress)}</Text> : null}
-            {item.note ? <Text style={styles.historyNote}>{item.note}</Text> : null}
-          </View>
-        ))}
-      </View>
-    </ScrollView>
+          {history.map((item, index) => (
+            <AnimatedScreen key={`${item.sessionId}-${item.className}`} delayMs={index * 22}>
+              <View style={styles.historyCard}>
+                <Text style={styles.historyClass}>{item.className}</Text>
+                <Text style={styles.historyMeta}>{item.date} • {item.status}</Text>
+                {item.progress ? <Text style={styles.historyProgress}>Progress: {formatProgress(item.progress)}</Text> : null}
+                {item.note ? <Text style={styles.historyNote}>{item.note}</Text> : null}
+              </View>
+            </AnimatedScreen>
+          ))}
+        </View>
+      </ScrollView>
+    </AnimatedScreen>
   );
 }
 

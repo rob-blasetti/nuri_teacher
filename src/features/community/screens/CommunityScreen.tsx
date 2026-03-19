@@ -1,6 +1,8 @@
 import React from 'react';
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useClasses } from '../context/ClassesContext';
+import { AnimatedScreen } from '../../../shared/components/AnimatedScreen';
+import { LoadingCard } from '../../../shared/components/LoadingCard';
 import { colors } from '../../../shared/theme/colors';
 import { ClassCard } from '../components/ClassCard';
 import { useAuth } from '../../auth/context/AuthContext';
@@ -10,18 +12,13 @@ export function CommunityScreen() {
   const { classes, isLoading, error, refreshClasses } = useClasses();
 
   return (
-    <View style={styles.container}>
+    <AnimatedScreen style={styles.container}>
       <Text style={styles.title}>Community</Text>
       <Text style={styles.subtitle}>
         Children&apos;s classes from {authSession?.community?.name ?? authSession?.user.community?.name ?? 'your community'}.
       </Text>
 
-      {isLoading ? (
-        <View style={styles.statusCard}>
-          <ActivityIndicator color={colors.primary} />
-          <Text style={styles.statusText}>Loading community classes...</Text>
-        </View>
-      ) : null}
+      {isLoading ? <LoadingCard text="Loading community classes..." /> : null}
 
       {error ? (
         <View style={styles.statusCard}>
@@ -44,9 +41,13 @@ export function CommunityScreen() {
             </View>
           ) : null
         }
-        renderItem={({ item }) => <ClassCard classItem={item} />}
+        renderItem={({ item, index }) => (
+          <AnimatedScreen delayMs={index * 30}>
+            <ClassCard classItem={item} />
+          </AnimatedScreen>
+        )}
       />
-    </View>
+    </AnimatedScreen>
   );
 }
 

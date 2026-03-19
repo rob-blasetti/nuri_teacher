@@ -1,8 +1,10 @@
 import React, { useMemo } from 'react';
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { StudentsStackParamList } from '../../../app/navigation/types';
+import { AnimatedScreen } from '../../../shared/components/AnimatedScreen';
+import { LoadingCard } from '../../../shared/components/LoadingCard';
 import { colors } from '../../../shared/theme/colors';
 import { useClasses } from '../../community/context/ClassesContext';
 
@@ -54,16 +56,11 @@ export function StudentListScreen() {
   const students = useMemo(() => buildStudentsFromClasses(myClasses), [myClasses]);
 
   return (
-    <View style={styles.container}>
+    <AnimatedScreen style={styles.container}>
       <Text style={styles.title}>Students</Text>
       <Text style={styles.sub}>Students pulled from the participants in your live classes.</Text>
 
-      {isLoading ? (
-        <View style={styles.statusCard}>
-          <ActivityIndicator color={colors.primary} />
-          <Text style={styles.statusText}>Loading students...</Text>
-        </View>
-      ) : null}
+      {isLoading ? <LoadingCard text="Loading students..." /> : null}
 
       {error ? (
         <View style={styles.statusCard}>
@@ -90,17 +87,19 @@ export function StudentListScreen() {
             </View>
           ) : null
         }
-        renderItem={({ item }) => (
-          <Pressable
-            style={styles.card}
-            onPress={() => navigation.navigate('StudentDetail', { studentId: item.id })}>
-            <Text style={styles.cardTitle}>{item.name}</Text>
-            <Text style={styles.cardMeta}>{item.classNames.join(' • ') || 'Class not assigned yet'}</Text>
-            <Text style={styles.cardMetaSecondary}>ID: {item.id}</Text>
-          </Pressable>
+        renderItem={({ item, index }) => (
+          <AnimatedScreen delayMs={index * 24}>
+            <Pressable
+              style={styles.card}
+              onPress={() => navigation.navigate('StudentDetail', { studentId: item.id })}>
+              <Text style={styles.cardTitle}>{item.name}</Text>
+              <Text style={styles.cardMeta}>{item.classNames.join(' • ') || 'Class not assigned yet'}</Text>
+              <Text style={styles.cardMetaSecondary}>ID: {item.id}</Text>
+            </Pressable>
+          </AnimatedScreen>
         )}
       />
-    </View>
+    </AnimatedScreen>
   );
 }
 

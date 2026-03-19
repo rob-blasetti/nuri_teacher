@@ -1,9 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../../app/navigation/types';
 import { useClasses } from '../../community/context/ClassesContext';
+import { AnimatedScreen } from '../../../shared/components/AnimatedScreen';
+import { LoadingCard } from '../../../shared/components/LoadingCard';
 import { colors } from '../../../shared/theme/colors';
 import { getClassSessions, getSessionAttendance } from '../../../services/sessionService';
 
@@ -77,16 +79,11 @@ export function ClassSessionsScreen() {
   }, [route.params.classId]);
 
   return (
-    <View style={styles.container}>
+    <AnimatedScreen style={styles.container}>
       <Text style={styles.title}>{classItem?.name ?? 'Class Sessions'}</Text>
       <Text style={styles.subtitle}>Recent locally saved class sessions.</Text>
 
-      {isLoading ? (
-        <View style={styles.statusCard}>
-          <ActivityIndicator color={colors.primary} />
-          <Text style={styles.statusText}>Loading session history...</Text>
-        </View>
-      ) : null}
+      {isLoading ? <LoadingCard text="Loading session history..." /> : null}
 
       {error ? (
         <View style={styles.statusCard}>
@@ -109,23 +106,25 @@ export function ClassSessionsScreen() {
             </View>
           ) : null
         }
-        renderItem={({ item }) => (
-          <Pressable
-            style={styles.card}
-            onPress={() => navigation.navigate('InClassMode', { classId: route.params.classId, sessionId: item.id })}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardTitle}>{item.date}</Text>
-              <View style={styles.openBadge}>
-                <Text style={styles.openBadgeText}>Open</Text>
+        renderItem={({ item, index }) => (
+          <AnimatedScreen delayMs={index * 28}>
+            <Pressable
+              style={styles.card}
+              onPress={() => navigation.navigate('InClassMode', { classId: route.params.classId, sessionId: item.id })}>
+              <View style={styles.cardHeader}>
+                <Text style={styles.cardTitle}>{item.date}</Text>
+                <View style={styles.openBadge}>
+                  <Text style={styles.openBadgeText}>Open</Text>
+                </View>
               </View>
-            </View>
-            <Text style={styles.cardMeta}>{item.summaryLabel}</Text>
-            {item.note?.trim() ? <Text style={styles.cardNote} numberOfLines={2}>{item.note.trim()}</Text> : null}
-            <Text style={styles.cardFootnote}>Session ID: {item.id}</Text>
-          </Pressable>
+              <Text style={styles.cardMeta}>{item.summaryLabel}</Text>
+              {item.note?.trim() ? <Text style={styles.cardNote} numberOfLines={2}>{item.note.trim()}</Text> : null}
+              <Text style={styles.cardFootnote}>Session ID: {item.id}</Text>
+            </Pressable>
+          </AnimatedScreen>
         )}
       />
-    </View>
+    </AnimatedScreen>
   );
 }
 

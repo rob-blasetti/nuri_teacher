@@ -1,8 +1,10 @@
 import React, { useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FastImage from 'react-native-fast-image';
+import { AnimatedScreen } from '../../../shared/components/AnimatedScreen';
+import { LoadingCard } from '../../../shared/components/LoadingCard';
 import { colors } from '../../../shared/theme/colors';
 import { useClasses } from '../../community/context/ClassesContext';
 import { useAuth } from '../../auth/context/AuthContext';
@@ -40,16 +42,11 @@ export function HomeScreen() {
 
 
   return (
-    <View style={styles.container}>
+    <AnimatedScreen style={styles.container}>
       <Text style={styles.eyebrow}>{communityName}</Text>
       <Text style={styles.title}>Children&apos;s Classes</Text>
 
-      {isLoadingClasses ? (
-        <View style={styles.statusCard}>
-          <ActivityIndicator color={colors.primary} />
-          <Text style={styles.statusText}>Loading class overview...</Text>
-        </View>
-      ) : null}
+      {isLoadingClasses ? <LoadingCard text="Loading class overview..." /> : null}
 
       {classesError ? (
         <View style={styles.statusCard}>
@@ -88,9 +85,8 @@ export function HomeScreen() {
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carouselContent}>
         {myClasses.length > 0 ? (
-          
-          myClasses.map(classItem => (
-            <View key={classItem.id} style={styles.carouselCard}>
+          myClasses.map((classItem, index) => (
+            <AnimatedScreen key={classItem.id} style={styles.carouselCard} delayMs={index * 35}>
               {classItem.imageUrl && !failedImages[classItem.id] ? (
                 <FastImage
                   source={{ uri: classItem.imageUrl, priority: FastImage.priority.normal }}
@@ -123,7 +119,7 @@ export function HomeScreen() {
                   </Pressable>
                 </View>
               </View>
-            </View>
+            </AnimatedScreen>
           ))
         ) : !isLoadingClasses && !classesError ? (
           <View style={styles.statusCardWide}>
@@ -132,7 +128,7 @@ export function HomeScreen() {
           </View>
         ) : null}
       </ScrollView>
-    </View>
+    </AnimatedScreen>
   );
 }
 
